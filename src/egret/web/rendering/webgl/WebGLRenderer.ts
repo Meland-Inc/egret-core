@@ -152,10 +152,6 @@ namespace egret.web {
             }
             let children = displayObject.$children;
             if (children) {
-                if (displayObject.sortableChildren && displayObject.$sortDirty) {
-                    //绘制排序
-                    displayObject.sortChildren();
-                }
                 let length = children.length;
                 for (let i = 0; i < length; i++) {
                     let child = children[i];
@@ -884,6 +880,12 @@ namespace egret.web {
             }
             let canvasScaleX = sys.DisplayList.$canvasScaleX * 2;
             let canvasScaleY = sys.DisplayList.$canvasScaleY * 2;
+            //TODO:测试无效 虽然会有变化 但是由于总renderBuff缩放 导致这里的不生效 感觉也依附总renderBuff的话也说的过去 要实现需要不依赖 需要更好的解决方案 这里思路备份
+            // // 当外部缩放了renderBuff后 需要还原成固定text的buff 为了文本buff不要被外部缩放影响 因为这个太影响效果
+            // if (sys.DisplayList.canvasExternalScale < 1) {
+            //     canvasScaleX /= sys.DisplayList.canvasExternalScale;
+            //     canvasScaleY /= sys.DisplayList.canvasExternalScale;
+            // }
             let maxTextureSize = buffer.context.$maxTextureSize;
             if (width * canvasScaleX > maxTextureSize) {
                 canvasScaleX *= maxTextureSize / (width * canvasScaleX);
@@ -912,9 +914,10 @@ namespace egret.web {
                 return;
             }
 
-            if (canvasScaleX != 1 || canvasScaleY != 1) {
-                this.canvasRenderBuffer.context.setTransform(canvasScaleX, 0, 0, canvasScaleY, 0, 0);
-            }
+            //dirtyRender为false也会执行,导致显示很多文本时内存一直增长
+            // if (canvasScaleX != 1 || canvasScaleY != 1) {
+            //     this.canvasRenderBuffer.context.setTransform(canvasScaleX, 0, 0, canvasScaleY, 0, 0);
+            // }
 
             if (x || y) {
                 if (node.dirtyRender) {
