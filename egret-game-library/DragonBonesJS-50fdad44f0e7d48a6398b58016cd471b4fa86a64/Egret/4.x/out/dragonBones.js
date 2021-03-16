@@ -3767,7 +3767,8 @@ var dragonBones;
         Armature.prototype.dispose = function () {
             if (this._armatureData !== null) {
                 this._lockUpdate = true;
-                this._dragonBones.bufferObject(this);
+                this.returnToPool();
+                // this._dragonBones.bufferObject(this);
             }
         };
         /**
@@ -7955,7 +7956,12 @@ var dragonBones;
         Animation.prototype.playConfig = function (animationConfig) {
             var animationName = animationConfig.animation;
             if (!(animationName in this._animations)) {
-                // console.warn("Non-existent animation.\n", "DragonBones name: " + this._armature.armatureData.parent.name, "Armature name: " + this._armature.name, "Animation name: " + animationName);
+                // console.warn(
+                //     "Non-existent animation.\n",
+                //     "DragonBones name: " + this._armature.armatureData.parent.name,
+                //     "Armature name: " + this._armature.name,
+                //     "Animation name: " + animationName
+                // );
                 return null;
             }
             var animationData = this._animations[animationName];
