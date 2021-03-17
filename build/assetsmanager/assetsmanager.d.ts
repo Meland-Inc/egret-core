@@ -1461,6 +1461,7 @@ declare module RES {
         static errorMessage: {
             1001: string;
             1002: string;
+            1003: string;
             2001: string;
             2002: string;
             2003: string;

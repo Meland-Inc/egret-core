@@ -1,13 +1,19 @@
 var __reflect = (this && this.__reflect) || function (p, c, t) {
     p.__class__ = c, t ? t.push(c) : t = [c], p.__types__ = p.__types__ ? t.concat(p.__types__) : t;
 };
-var __extends = this && this.__extends || function __extends(t, e) { 
- function r() { 
- this.constructor = t;
-}
-for (var i in e) e.hasOwnProperty(i) && (t[i] = e[i]);
-r.prototype = e.prototype, t.prototype = new r();
-};
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 //////////////////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (c) 2014-present, Egret Technology.
@@ -52,7 +58,7 @@ var egret;
      * @platform Web,Native
      * @language zh_CN
      */
-    var Ease = (function () {
+    var Ease = /** @class */ (function () {
         /**
          * @version Egret 2.4
          * @platform Web,Native
@@ -695,7 +701,7 @@ var egret;
      * @includeExample extension/tween/Tween.ts
      * @language zh_CN
      */
-    var Tween = (function (_super) {
+    var Tween = /** @class */ (function (_super) {
         __extends(Tween, _super);
         /**
          * 创建一个 egret.Tween 对象
@@ -875,8 +881,9 @@ var egret;
          */
         Tween.tick = function (timeStamp, paused) {
             if (paused === void 0) { paused = false; }
-            var delta = timeStamp - Tween._lastTime;
-            Tween._lastTime = timeStamp;
+            var delta = egret.getFrameDelta();
+            // let delta = timeStamp - Tween._lastTime;
+            // Tween._lastTime = timeStamp;
             var tweens = Tween._tweens.concat();
             for (var i = tweens.length - 1; i >= 0; i--) {
                 var tween_1 = tweens[i];
@@ -887,6 +894,7 @@ var egret;
             }
             return false;
         };
+        // private static _lastTime: number = 0;
         /**
          * @private
          *
@@ -902,7 +910,7 @@ var egret;
                 }
                 tweens.push(tween);
                 if (!Tween._inited) {
-                    Tween._lastTime = egret.getTimer();
+                    // Tween._lastTime = egret.getTimer();
                     egret.ticker.$startTick(Tween.tick, null);
                     Tween._inited = true;
                 }
@@ -1452,7 +1460,6 @@ var egret;
          * @private
          */
         Tween._inited = false;
-        Tween._lastTime = 0;
         return Tween;
     }(egret.EventDispatcher));
     egret.Tween = Tween;
@@ -1502,7 +1509,7 @@ var egret;
          * @platform Web,Native
          * @language zh_CN
          */
-        var BasePath = (function (_super) {
+        var BasePath = /** @class */ (function (_super) {
             __extends(BasePath, _super);
             function BasePath() {
                 var _this = _super !== null && _super.apply(this, arguments) || this;
@@ -1537,7 +1544,7 @@ var egret;
          * @platform Web,Native
          * @language zh_CN
          */
-        var To = (function (_super) {
+        var To = /** @class */ (function (_super) {
             __extends(To, _super);
             function To() {
                 var _this = _super !== null && _super.apply(this, arguments) || this;
@@ -1598,7 +1605,7 @@ var egret;
          * @platform Web,Native
          * @language zh_CN
          */
-        var Wait = (function (_super) {
+        var Wait = /** @class */ (function (_super) {
             __extends(Wait, _super);
             function Wait() {
                 var _this = _super !== null && _super.apply(this, arguments) || this;
@@ -1646,7 +1653,7 @@ var egret;
          * @platform Web,Native
          * @language zh_CN
          */
-        var Set = (function (_super) {
+        var Set = /** @class */ (function (_super) {
             __extends(Set, _super);
             function Set() {
                 var _this = _super !== null && _super.apply(this, arguments) || this;
@@ -1681,7 +1688,7 @@ var egret;
          * @platform Web,Native
          * @language zh_CN
          */
-        var Tick = (function (_super) {
+        var Tick = /** @class */ (function (_super) {
             __extends(Tick, _super);
             function Tick() {
                 var _this = _super !== null && _super.apply(this, arguments) || this;
@@ -1764,7 +1771,7 @@ var egret;
          * 	</tween:TweenItem>
          * ```
          */
-        var TweenItem = (function (_super) {
+        var TweenItem = /** @class */ (function (_super) {
             __extends(TweenItem, _super);
             function TweenItem() {
                 var _this = _super.call(this) || this;
@@ -1961,7 +1968,7 @@ var egret;
          * @includeExample extension/tween/TweenWrapper.ts
          * @language zh_CN
          */
-        var TweenGroup = (function (_super) {
+        var TweenGroup = /** @class */ (function (_super) {
             __extends(TweenGroup, _super);
             function TweenGroup() {
                 var _this = _super.call(this) || this;

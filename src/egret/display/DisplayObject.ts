@@ -171,6 +171,9 @@ namespace egret {
             this.$name = value;
         }
 
+        /** 自定义标签 */
+        public tag: string = "";//没用get set  渲染频繁使用 提高效率
+
         /**
          * @private
          */
@@ -2038,6 +2041,10 @@ namespace egret {
          * @private
          */
         $hitTest(stageX: number, stageY: number): DisplayObject {
+            // if (!this.$touchEnabled) {//优化hitTest性能
+            //     return null;
+            // }
+
             let self = this;
             if ((!egret.nativeRender && !self.$renderNode) || !self.$visible || self.$scaleX == 0 || self.$scaleY == 0) {
                 return null;
@@ -2288,6 +2295,65 @@ namespace egret {
             return false;
         }
 
+        /**
+         * @private
+         * inspired by pixi.js
+         */
+        $sortDirty: boolean = false;
+        public sortChildren(): void {
+            this.$sortDirty = false;
+        }
+        /**
+         * @private
+         */
+        private _zIndex: number = 0;
+        /**
+         * the z-order (front-to-back order) of the object
+         * @version Egret 5.2.24
+         * @platform Web,Native
+         * @language en_US
+         */
+        /**
+         * 设置对象的 Z 轴顺序（前后顺序）
+         * @version Egret 5.2.24
+         * @platform Web,Native
+         * @language zh_CN
+         */
+        public get zIndex(): number {
+            return this._zIndex;
+        }
+        public set zIndex(value: number) {
+            this._zIndex = value;
+            if (this.parent) {
+                this.parent.$sortDirty = true;
+            }
+        }
+        /**
+         * @private
+         * inspired by pixi.js
+         */
+        $lastSortedIndex: number = 0;
+        /**
+         * Allow objects to use zIndex sorting
+         * @version Egret 5.2.24
+         * @platform Web,Native
+         * @language en_US
+         */
+        /**
+         * 允许对象使用 zIndex 排序
+         * @version Egret 5.2.24
+         * @platform Web,Native
+         * @language zh_CN
+         */
+        public sortableChildren: boolean = false;
     }
 
+    /**
+     * 系统固定标签
+     * cameraFilter 镜头滤镜 上面的滤镜比较特殊 不要乱用
+     */
+    export const TAG =
+    {
+        cameraFilter: "cameraFilter",
+    }
 }

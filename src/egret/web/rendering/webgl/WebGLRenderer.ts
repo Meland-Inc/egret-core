@@ -43,7 +43,7 @@ namespace egret.web {
         public constructor() {
 
         }
-
+        private _tempResultPos: Point = new Point();//临时计算坐标使用 防止gc
         private nestLevel: number = 0;//渲染的嵌套层次，0表示在调用堆栈的最外层。
         /**
          * 渲染一个显示对象
@@ -64,7 +64,13 @@ namespace egret.web {
 
             //绘制显示对象
             webglBuffer.transform(matrix.a, matrix.b, matrix.c, matrix.d, 0, 0);
-            this.drawDisplayObject(displayObject, webglBuffer, matrix.tx, matrix.ty, true);
+            //如果有滤镜 又开启了cacheAsBitmap要渲染滤镜
+            if (displayObject.$filters && displayObject.$filters.length > 0 && displayObject.$displayList) {
+                this.drawWithFilter(displayObject, webglBuffer, matrix.tx, matrix.ty, true);
+            }
+            else {
+                this.drawDisplayObject(displayObject, webglBuffer, matrix.tx, matrix.ty, true);
+            }
             webglBufferContext.$drawWebGL();
             let drawCall = webglBuffer.$drawCalls;
             webglBuffer.onRenderFinish();
@@ -94,6 +100,11 @@ namespace egret.web {
          * 绘制一个显示对象
          */
         private drawDisplayObject(displayObject: DisplayObject, buffer: WebGLRenderBuffer, offsetX: number, offsetY: number, isStage?: boolean): number {
+            // if (egret.$curPerf <= egret.ePerfType.high) {
+            //     //取整 否则坐标为小数横竖线条会变出变细
+            //     offsetX = Math.round(offsetX);
+            //     offsetY = Math.round(offsetY);
+            // }
             let drawCalls = 0;
             let node: sys.RenderNode;
             let displayList = displayObject.$displayList;
@@ -146,6 +157,10 @@ namespace egret.web {
             }
             let children = displayObject.$children;
             if (children) {
+                if (displayObject.sortableChildren && displayObject.$sortDirty) {
+                    //绘制排序
+                    displayObject.sortChildren();
+                }
                 let length = children.length;
                 for (let i = 0; i < length; i++) {
                     let child = children[i];
@@ -211,17 +226,26 @@ namespace egret.web {
             return drawCalls;
         }
 
+        //加入 isStage 使图片的cacheAsBitmap能够将滤镜也渲染进去 该种情况下极大的减少滤镜开销 modify by xiangqian
         /**
          * @private
          */
-        private drawWithFilter(displayObject: DisplayObject, buffer: WebGLRenderBuffer, offsetX: number, offsetY: number): number {
+        private drawWithFilter(displayObject: DisplayObject, buffer: WebGLRenderBuffer, offsetX: number, offsetY: number, isStage?: boolean): number {
             let drawCalls = 0;
             if (displayObject.$children && displayObject.$children.length == 0 && (!displayObject.$renderNode || displayObject.$renderNode.$getRenderCount() == 0)) {
                 return drawCalls;
             }
+
+            //如果是cacheAsBitmap模式  要么脏了重渲render会有滤镜  要么没脏直接用的图中的滤镜效果 怎么样都可以直接跳过这次滤镜
+            if (displayObject.$displayList && !isStage) {
+                drawCalls += this.drawDisplayObject(displayObject, buffer, offsetX, offsetY, isStage);
+                return drawCalls;
+            }
+
             let filters = displayObject.$filters;
             let hasBlendMode = (displayObject.$blendMode !== 0);
             let compositeOp: string;
+            let isCameraFilter: boolean = displayObject.tag == TAG.cameraFilter;//镜头滤镜
             if (hasBlendMode) {
                 compositeOp = blendModes[displayObject.$blendMode];
                 if (!compositeOp) {
@@ -229,16 +253,30 @@ namespace egret.web {
                 }
             }
 
-            const displayBounds = displayObject.$getOriginalBounds();
-            const displayBoundsX = displayBounds.x;
-            const displayBoundsY = displayBounds.y;
-            const displayBoundsWidth = displayBounds.width;
-            const displayBoundsHeight = displayBounds.height;
+            let displayBoundsX: number
+            let displayBoundsY: number
+            let displayBoundsWidth: number
+            let displayBoundsHeight: number
+            if (isCameraFilter) {
+                let cameraPos: Point = displayObject.globalToLocal(0, 0, this._tempResultPos);
+                displayBoundsX = Math.round(cameraPos.x);
+                displayBoundsY = Math.round(cameraPos.y);
+                let m: Matrix = displayObject.$getConcatenatedMatrix();
+                displayBoundsWidth = displayObject.$stage.$stageWidth / m.a;
+                displayBoundsHeight = displayObject.$stage.$stageHeight / m.d;
+            }
+            else {
+                const displayBounds = displayObject.$getOriginalBounds();
+                displayBoundsX = displayBounds.x;
+                displayBoundsY = displayBounds.y;
+                displayBoundsWidth = displayBounds.width;
+                displayBoundsHeight = displayBounds.height;
+            }
             if (displayBoundsWidth <= 0 || displayBoundsHeight <= 0) {
                 return drawCalls;
             }
 
-            if (!displayObject.mask && filters.length == 1 && (filters[0].type == "colorTransform" || (filters[0].type === "custom" && (<CustomFilter>filters[0]).padding === 0))) {
+            if (!displayObject.mask && filters.length == 1 && !isCameraFilter && (filters[0].type == "colorTransform" || (filters[0].type === "custom" && (<CustomFilter>filters[0]).padding === 0))) {
                 let childrenDrawCount = this.getRenderCount(displayObject);
                 if (!displayObject.$children || childrenDrawCount == 1) {
                     if (hasBlendMode) {
@@ -253,7 +291,7 @@ namespace egret.web {
                         drawCalls += this.drawWithScrollRect(displayObject, buffer, offsetX, offsetY);
                     }
                     else {
-                        drawCalls += this.drawDisplayObject(displayObject, buffer, offsetX, offsetY);
+                        drawCalls += this.drawDisplayObject(displayObject, buffer, offsetX, offsetY, isStage);
                     }
 
                     buffer.context.$filter = null;
@@ -278,7 +316,7 @@ namespace egret.web {
                 drawCalls += this.drawWithScrollRect(displayObject, displayBuffer, -displayBoundsX, -displayBoundsY);
             }
             else {
-                drawCalls += this.drawDisplayObject(displayObject, displayBuffer, -displayBoundsX, -displayBoundsY);
+                drawCalls += this.drawDisplayObject(displayObject, displayBuffer, -displayBoundsX, -displayBoundsY, isStage);
             }
 
             displayBuffer.context.popBuffer();
@@ -849,8 +887,14 @@ namespace egret.web {
             if (width <= 0 || height <= 0 || !width || !height || node.drawData.length == 0) {
                 return;
             }
-            let canvasScaleX = sys.DisplayList.$canvasScaleX;
-            let canvasScaleY = sys.DisplayList.$canvasScaleY;
+            let canvasScaleX = sys.DisplayList.$canvasScaleX * 2;
+            let canvasScaleY = sys.DisplayList.$canvasScaleY * 2;
+            //TODO:测试无效 虽然会有变化 但是由于总renderBuff缩放 导致这里的不生效 感觉也依附总renderBuff的话也说的过去 要实现需要不依赖 需要更好的解决方案 这里思路备份
+            // // 当外部缩放了renderBuff后 需要还原成固定text的buff 为了文本buff不要被外部缩放影响 因为这个太影响效果
+            // if (sys.DisplayList.canvasExternalScale < 1) {
+            //     canvasScaleX /= sys.DisplayList.canvasExternalScale;
+            //     canvasScaleY /= sys.DisplayList.canvasExternalScale;
+            // }
             let maxTextureSize = buffer.context.$maxTextureSize;
             if (width * canvasScaleX > maxTextureSize) {
                 canvasScaleX *= maxTextureSize / (width * canvasScaleX);
@@ -879,9 +923,10 @@ namespace egret.web {
                 return;
             }
 
-            if (canvasScaleX != 1 || canvasScaleY != 1) {
-                this.canvasRenderBuffer.context.setTransform(canvasScaleX, 0, 0, canvasScaleY, 0, 0);
-            }
+            //dirtyRender为false也会执行,导致显示很多文本时内存一直增长
+            // if (canvasScaleX != 1 || canvasScaleY != 1) {
+            //     this.canvasRenderBuffer.context.setTransform(canvasScaleX, 0, 0, canvasScaleY, 0, 0);
+            // }
 
             if (x || y) {
                 if (node.dirtyRender) {
@@ -913,6 +958,7 @@ namespace egret.web {
 
             let textureWidth = node.$textureWidth;
             let textureHeight = node.$textureHeight;
+            // buffer.context.drawTexture(node.$texture, 0, 0, textureWidth * 4, textureHeight * 4, 0, 0, textureWidth / canvasScaleX, textureHeight / canvasScaleY, textureWidth * 4, textureHeight * 4);
             buffer.context.drawTexture(node.$texture, 0, 0, textureWidth, textureHeight, 0, 0, textureWidth / canvasScaleX, textureHeight / canvasScaleY, textureWidth, textureHeight);
 
             if (x || y) {

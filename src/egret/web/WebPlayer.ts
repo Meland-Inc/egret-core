@@ -158,7 +158,7 @@ namespace egret.web {
          */
         public stage: Stage;
 
-        private webTouchHandler: WebTouchHandler;
+        public webTouchHandler: WebTouchHandler;
         private player: egret.sys.Player;
         private webInput: egret.web.HTMLInput;
 
@@ -223,30 +223,50 @@ namespace egret.web {
                 canvas.style.top = top + (boundingClientHeight - displayHeight) / 2 + "px";
                 canvas.style.left = (boundingClientWidth - displayWidth) / 2 + "px";
             }
-            let scalex = displayWidth / stageWidth,
-                scaley = displayHeight / stageHeight;
-            let canvasScaleX = scalex * sys.DisplayList.$canvasScaleFactor;
-            let canvasScaleY = scaley * sys.DisplayList.$canvasScaleFactor;
+            let displayScalex = displayWidth / stageWidth,
+                diplayScaley = displayHeight / stageHeight;
+
+            let realScaleX = displayScalex * sys.DisplayList.$canvasScaleFactor;//最终实际缩放
+            let realScaleY = diplayScaley * sys.DisplayList.$canvasScaleFactor;
+
+            //将xy原始渲染缩放控制在1以内  不大于舞台设计分辨率 但是缩小分辨率的时候 可以适应低分辨率渲染节省性能 xy需要同比例缩小
+            let originalMaxScale = realScaleX > realScaleY ? realScaleX : realScaleY;//原始渲染最大缩放值
+            if (originalMaxScale > 1) {
+                realScaleX = realScaleX / originalMaxScale;
+                realScaleY = realScaleY / originalMaxScale;
+            }
+
+            //加上外部控制缩放后 也不能超过原始渲染缩放 超过了屏幕原生分辨后没有意义
+            realScaleX *= sys.DisplayList.canvasExternalScale;
+            realScaleY *= sys.DisplayList.canvasExternalScale;
+            let externalMaxScale = realScaleX > realScaleY ? realScaleX : realScaleY;//外部控制后的最大缩放值
+            if (externalMaxScale > originalMaxScale) {
+                let scale = originalMaxScale / externalMaxScale;
+                realScaleX *= scale;
+                realScaleY *= scale;
+            }
+
+            //高性能档位取整 解决横竖线条变出变细问题
             if (egret.Capabilities.renderMode == "canvas") {
-                canvasScaleX = Math.ceil(canvasScaleX);
-                canvasScaleY = Math.ceil(canvasScaleY);
+                realScaleX = Math.ceil(realScaleX);
+                realScaleY = Math.ceil(realScaleY);
             }
 
             let m = egret.Matrix.create();
             m.identity();
-            m.scale(scalex / canvasScaleX, scaley / canvasScaleY);
+            m.scale(displayScalex / realScaleX, diplayScaley / realScaleY);
             m.rotate(rotation * Math.PI / 180);
             let transform = `matrix(${m.a},${m.b},${m.c},${m.d},${m.tx},${m.ty})`;
             egret.Matrix.release(m);
             canvas.style[egret.web.getPrefixStyleName("transform")] = transform;
-            sys.DisplayList.$setCanvasScale(canvasScaleX, canvasScaleY);
-            this.webTouchHandler.updateScaleMode(scalex, scaley, rotation);
+            sys.DisplayList.$setCanvasScale(realScaleX, realScaleY);
+            this.webTouchHandler.updateScaleMode(displayScalex, diplayScaley, rotation);
             this.webInput.$updateSize();
             this.player.updateStageSize(stageWidth, stageHeight);//不要在这个方法后面修改属性
             // todo
-            if(egret.nativeRender) {
-                canvas.width = stageWidth * canvasScaleX;
-                canvas.height = stageHeight * canvasScaleY;
+            if (egret.nativeRender) {
+                canvas.width = stageWidth * realScaleX;
+                canvas.height = stageHeight * realScaleY;
             }
         }
 

@@ -65,7 +65,7 @@ namespace egret.web {
         /**
          * @private
          */
-        private _isNeedShow: boolean = false;
+        public _isNeedShow: boolean = false;
         /**
          * @private
          */
@@ -92,11 +92,22 @@ namespace egret.web {
             this.htmlInput = egret.web.$getTextAdapter(this.$textfield);
         }
 
+        public $getFocusIndex(): number {
+            return this.inputElement ? this.inputElement.selectionStart : 0;
+        }
+
+        public $setSelectionRange(start: number, end: number) {
+            this.inputElement.setSelectionRange(start, end);
+        }
         /**
          * @private
          * 
          */
         private _initElement(): void {
+          this.fixElementPos();
+        }
+
+        public fixElementPos():void{
             let point = this.$textfield.localToGlobal(0, 0);
             let x = point.x;
             let y = point.y;
@@ -144,9 +155,11 @@ namespace egret.web {
          * @private
          * 
          */
-        $show(): void {
+        $show(active: boolean = true): void {
             if (!this.htmlInput.isCurrentStageText(this)) {
                 this.inputElement = this.htmlInput.getInputElement(this);
+                this.inputElement.autocomplete = 'off';
+                this.inputElement.readOnly = "readonly";
                 if (!this.$textfield.multiline) {
                     this.inputElement.type = this.$textfield.inputType;
                 }
@@ -165,6 +178,30 @@ namespace egret.web {
             this._isNeedShow = true;
 
             this._initElement();
+
+            if (active) {
+                this.activeShowKeyboard();
+            }
+        }
+
+    	activeShowKeyboard(): void {
+            if (this.htmlInput._needShow) {
+                if (this._isNeedShow) {
+                    this._isNeedShow = false;
+                    this.executeShow();
+                    this.dispatchEvent(new egret.Event("focus"));
+                } else if (this.$textfield.isIDEMode) {
+                    this.dispatchEvent(new egret.Event("focus"));
+                }
+                this.htmlInput.show();
+            }
+            else {
+                if (this.htmlInput._inputElement) {
+                    this.htmlInput.clearInputElement();
+                    this.htmlInput._inputElement.blur();
+                    this.htmlInput._inputElement = null;
+                }
+            }
         }
 
         /**
@@ -172,8 +209,15 @@ namespace egret.web {
          * 
          */
         private onBlurHandler(): void {
-            this.htmlInput.clearInputElement();
-            window.scrollTo(0, 0);
+            //TOUCH_BEGIN直接调用setFocus时，inputElement会触发一次失焦。在这里重新聚焦。
+            if (this.htmlInput._needShow) {
+                this.inputElement.focus();
+            } else {
+                this.inputElement.autocomplete = 'off';
+                this.inputElement.readOnly = "readonly";
+                this.htmlInput.clearInputElement();
+                window.scrollTo(0, 0);
+            }
         }
 
         /**
@@ -200,6 +244,8 @@ namespace egret.web {
 
             this.inputElement.selectionStart = this.inputElement.value.length;
             this.inputElement.selectionEnd = this.inputElement.value.length;
+            this.inputElement.readOnly = undefined;
+            this.inputElement.autocomplete = 'off';
             this.inputElement.focus();
         }
 
@@ -334,9 +380,69 @@ namespace egret.web {
                 this.executeShow();
 
                 this.dispatchEvent(new egret.Event("focus"));
+            } else if (this.$textfield.isIDEMode) {
+                this.dispatchEvent(new egret.Event("focus"));
             }
         }
+        /**
+         * @private
+         * 
+         */
 
+        public _onClickInput(): void {
+            let self = this;
+            window.setTimeout(function () {
+                if (self.inputElement) {
+                    let e = new egret.Event("updatefocus");
+                    e.data = [self.inputElement.selectionStart, self.inputElement.selectionEnd];
+                    self.dispatchEvent(e);
+                }
+            }, 0);
+        }
+
+        /**
+         * @private
+         * 
+         */
+
+        public _onMouseMove(): void {
+            let self = this;
+            window.setTimeout(function () {
+                if (self.inputElement && self.inputElement.selectionStart != self.inputElement.selectionEnd) {
+                    let e = new egret.Event("updatefocus");
+                    e.data = [self.inputElement.selectionStart, self.inputElement.selectionEnd];
+                    self.dispatchEvent(e);
+                }
+            }, 0);
+        }
+        /**
+         * @private
+         * 
+         */
+
+        public _onDragEnd(): void {
+            let self = this;
+            window.setTimeout(function () {
+                if (self.inputElement) {
+                    self.textValue = self.inputElement.value;
+                    let e = new egret.Event("updatefocus");
+                    e.data = [self.inputElement.selectionStart, self.inputElement.selectionEnd];
+                    self.dispatchEvent(e);
+                    egret.Event.dispatchEvent(self, "updateText", false);
+                }
+            }, 0);
+        }
+
+        public _onKeyPress(): void {
+            let self = this;
+            window.setTimeout(function () {
+                if (self.inputElement) {
+                    let e = new egret.Event("updatefocus");
+                    e.data = [self.inputElement.selectionStart, self.inputElement.selectionEnd];
+                    self.dispatchEvent(e);
+                }
+            }, 0);
+        }
         /**
          * @private
          * 
@@ -459,7 +565,7 @@ namespace egret.web {
         /**
          * @private
          */
-        private _inputElement: any;
+        public _inputElement: any;
         /**
          * @private
          */
@@ -571,7 +677,7 @@ namespace egret.web {
                 this.canvas.addEventListener("click", function (e) {
                     if (self._needShow) {
                         self._needShow = false;
-
+                        self._stageText.fixElementPos();//在滚动容器中有可能输入文本框和egret的现实对象位置不一致，在显示的时候在调整一次文本框的位置，确保输入框和显示对象位置一致
                         self._stageText._onClickHandler(e);
 
                         self.show();
@@ -631,6 +737,42 @@ namespace egret.web {
                     self._stageText._onInput();
                 }
             };
+
+            inputElement.onclick = function () {
+                if (self._stageText) {
+                    self._stageText._onClickInput();
+                }
+            };
+
+            inputElement.onmousemove = function () {
+                if (self._stageText) {
+                    self._stageText._onMouseMove();
+                }
+            };
+
+
+            inputElement.ondragend = function () {
+                if (self._stageText) {
+                    self._stageText._onDragEnd();
+                }
+            }
+
+            inputElement.onkeypress = function () {
+                if (self._stageText) {
+                    self._stageText._onKeyPress();
+                }
+            }
+
+            inputElement.onkeydown = function () {
+                if (self._stageText) {
+                    if (self._stageText.$textfield.isIDETip) {
+                        if ([13, 38, 40].indexOf((event as KeyboardEvent).which) >= 0) {
+                            (event as KeyboardEvent).returnValue = false;
+                        }
+                    }
+                    self._stageText._onKeyPress();
+                }
+            }
         }
 
         /**
@@ -641,9 +783,11 @@ namespace egret.web {
             let self = this;
             let inputElement = self._inputElement;
             //隐藏输入框
-            egret.$callAsync(function () {
-                inputElement.style.opacity = 1;
-            }, self);
+            if (!this._stageText.$textfield.isIDEMode) {
+                egret.$callAsync(function () {
+                    inputElement.style.opacity = 1;
+                }, self);
+            }
         }
 
         /**

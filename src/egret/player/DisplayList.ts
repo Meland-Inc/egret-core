@@ -184,12 +184,17 @@ namespace egret.sys {
         }
 
         public static $canvasScaleFactor: number = 1;
+        private static _canvasExternalScale: number = 1;//外部 游戏侧需要的额外缩放 和canvasScaleFactor独立开使用
 
         /**
          * @private
          */
         public static $canvasScaleX: number = 1;
         public static $canvasScaleY: number = 1;
+
+        public static get canvasExternalScale(): number {
+            return this._canvasExternalScale;
+        }
 
         /**
          * @private
@@ -198,8 +203,23 @@ namespace egret.sys {
             DisplayList.$canvasScaleX = x;
             DisplayList.$canvasScaleY = y;
             if (egret.nativeRender) {
-                egret_native.nrSetCanvasScaleFactor(DisplayList.$canvasScaleFactor, x, y);
+                egret_native.nrSetCanvasScaleFactor(DisplayList.$canvasScaleFactor * DisplayList.canvasExternalScale, x, y);
             }
+        }
+
+        /**
+         * 外部设置canvas渲染的额外缩放值 如果超过屏幕像素原生分辨率了也只会放大到原生分辨率 否则是浪费
+         * @param scale 
+         */
+        public static setCanvasExternalScale(scale: number) {
+            if (scale < 0.1) {
+                if (DEBUG) {
+                    egret.warn(`setCanvasExternalScale value invalid=${scale}`);
+                }
+                scale = 0.1;
+            }
+
+            this._canvasExternalScale = scale;
         }
     }
 }

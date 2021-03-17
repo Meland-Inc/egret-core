@@ -567,6 +567,9 @@ var RES;
         ResourceLoader.prototype.getOneResourceInfoInGroup = function () {
             if (this.failedList.length > 0)
                 return this.failedList.shift();
+            if (this.lazyLoadList.length > 0)
+                //后请求的先加载，以便更快获取当前需要的资源
+                return this.lazyLoadList.pop();
             var maxPriority = Number.NEGATIVE_INFINITY;
             for (var p in this.itemListPriorityDic) {
                 maxPriority = Math.max(maxPriority, p);
@@ -1915,8 +1918,13 @@ var RES;
                     var texture = loader['data'] ? loader['data'] : loader['response'];
                     resolve(texture);
                 };
-                var onError = function () {
-                    var e = new RES.ResourceManagerError(1001, resource.url);
+                var onError = function (evt) {
+                    var status = evt.data;
+                    var errorCode = 1001;
+                    if ([404, 478].indexOf(status) != -1) {
+                        errorCode = 1003;
+                    }
+                    var e = new RES.ResourceManagerError(errorCode, resource.url);
                     reject(e);
                 };
                 loader.addEventListener(egret.Event.COMPLETE, onSuccess, _this);
@@ -2865,8 +2873,9 @@ var RES;
             return _this;
         }
         ResourceManagerError.errorMessage = {
-            1001: '文件加载失败:{0}',
+            1001: '文件加载失败,连接超时:{0}',
             1002: "ResourceManager 初始化失败：配置文件加载失败",
+            1003: '文件加载失败,资源不存在:{0}',
             2001: "{0}解析失败,不支持指定解析类型:\'{1}\'，请编写自定义 Processor ，更多内容请参见 https://github.com/egret-labs/resourcemanager/blob/master/docs/README.md#processor",
             2002: "Analyzer 相关API 在 ResourceManager 中不再支持，请编写自定义 Processor ，更多内容请参见 https://github.com/egret-labs/resourcemanager/blob/master/docs/README.md#processor",
             2003: "{0}解析失败,错误原因:{1}",

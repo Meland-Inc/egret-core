@@ -279,6 +279,20 @@ namespace egret {
         public static default_textColor: number = 0xffffff;
 
         /**
+         * 当前焦点所在输入文本 没有焦点时为null
+         */
+        public static curFocusInput: TextField;
+        /**
+         * ide模式，由于dom的input不支持富文本，所以需要特殊处理
+         * 该模式下，隐藏input，显示egret的textfield，并监听各种事件
+         */
+        public isIDEMode: boolean = false;
+        /**
+         * ide模式是否显示keyword tip中
+         * 该模式下，input不接受enter等键盘事件，由tip监听
+         */
+        public isIDETip: boolean = false;
+        /**
          * @version Egret 2.4
          * @platform Web,Native
          */
@@ -1627,7 +1641,17 @@ namespace egret {
          */
         public setFocus(): void {
             if (this.type == egret.TextFieldType.INPUT && this.$stage) {
-                this.inputUtils.$onFocus();
+                this.inputUtils.$onFocus(true);
+            }
+        }
+
+        /**
+         * @desc 输入文本请求失焦
+         * @author mangit
+         */
+        public setFocusOut():void {
+            if (this.type == egret.TextFieldType.INPUT && this.$stage) {
+                this.inputUtils.stageText.$hide();
             }
         }
 
@@ -2199,10 +2223,12 @@ namespace egret {
          * @private
          */
         public $setIsTyping(value: boolean): void {
-            this.$isTyping = value;
-            this.$invalidateTextField();
-            if (nativeRender) {
-                this.$nativeDisplayObject.setIsTyping(value);
+            if (!this.isIDEMode) {
+                this.$isTyping = value;
+                this.$invalidateTextField();
+                if (nativeRender) {
+                    this.$nativeDisplayObject.setIsTyping(value);
+                }
             }
         }
 
@@ -2309,6 +2335,29 @@ namespace egret {
                 else {
                     open(style.href, style.target || "_blank");
                 }
+            }
+        }
+
+        public setIDEMode(flag: boolean) {
+            this.isIDEMode = flag;
+        }
+
+        public getFocusIndex() {
+            if (this.inputUtils && this.inputUtils.stageText) {
+                return this.inputUtils.stageText.$getFocusIndex();
+            } else {
+                return 0;
+            }
+
+        }
+
+        public setIDETip(flag: boolean) {
+            this.isIDETip = flag;
+        }
+
+        public setSelectionRange(start: number, end: number) {
+            if (this.inputUtils && this.inputUtils.stageText) {
+                return this.inputUtils.stageText.$setSelectionRange(start, start);
             }
         }
     }

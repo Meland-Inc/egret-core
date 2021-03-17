@@ -141,7 +141,7 @@ namespace egret.web {
         /**
          * 启用RenderBuffer
          */
-        private activateBuffer(buffer: WebGLRenderBuffer, width:number, height:number): void {
+        private activateBuffer(buffer: WebGLRenderBuffer, width: number, height: number): void {
 
             buffer.rootRenderTarget.activate();
 
@@ -370,6 +370,7 @@ namespace egret.web {
                 return;
             }
 
+            webglTextureNum++;
             texture.glContext = gl;
 
             gl.bindTexture(gl.TEXTURE_2D, texture);

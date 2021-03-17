@@ -45,8 +45,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function () { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function () { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -76,6 +76,7 @@ var cp = require("child_process");
 var path = require("path");
 var file = require("./FileUtil");
 var UglifyJS = require("./uglify-js/uglifyjs");
+var UglifyJS2 = require("./uglify-js2");
 var net = require("net");
 var timers_1 = require("timers");
 //第三方调用时，可能不支持颜色显示，可通过添加 -nocoloroutput 移除颜色信息
@@ -238,10 +239,10 @@ function executeCommand(command, options) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             return [2 /*return*/, new Promise(function (resolve, reject) {
-                    cp.exec(command, options, function (error, stdout, stderr) {
-                        resolve({ error: error, stdout: stdout, stderr: stderr });
-                    });
-                })];
+                cp.exec(command, options, function (error, stdout, stderr) {
+                    resolve({ error: error, stdout: stdout, stderr: stderr });
+                });
+            })];
         });
     });
 }
@@ -253,16 +254,195 @@ exports.endWith = endWith;
 function escape(s) {
     return s.replace(/"/, '\\\"');
 }
+
+//对main.js进行混淆
+//属性名混淆的定制处理，在propmangle里
 function uglify(sourceFile) {
-    var defines = {
-        DEBUG: false,
-        RELEASE: true
-    };
-    var result = UglifyJS.minify(sourceFile, { compress: { global_defs: defines }, fromString: true, output: { beautify: false } });
+    //闭包命名空间 如果为空 下面就不会走闭包
+    //改这个变量的具体值需要将下面namespaceRe中的一并修改 下面没有直接用字符串引用是因为要加太多反译符 不好理解和维护
+    let mainNamespace = 'bellPlanet';
+
+    let sourceCode = sourceFile;
+
+    //闭包需要将多js文件合并成一个文件处理
+    if (mainNamespace && typeof sourceFile != 'string') {
+        sourceCode = "";
+        for (let a in sourceFile) {
+            sourceCode += sourceFile[a];
+        }
+    }
+
+    //确实是否需要混淆needConfuse
+    var envReg = /.trunkName = eTrunkName.([^,;]+)/;
+    var evnStr = envReg.exec(sourceCode);
+    let needConfuse = !!(!evnStr || evnStr[1] == "release");
+
+    //加闭包
+    if (mainNamespace) {
+        sourceCode = closure(sourceCode, mainNamespace);
+    }
+
+    if (!needConfuse) {
+        return sourceCode;
+    }
+
+    //白名单
+    let mangle = {};
+    if (mainNamespace || needConfuse) {//只要走闭包或者混淆就需要有白名单
+        //符号白名单
+        //类名混淆时，各种配置表***Table，由于是资源读出的，需要保留
+        //还有比如Main是引擎的引用等，需要手动添加进reserved
+        let symbolReserved = [mainNamespace, 'Main', "GameConsole", 'Bian', '__reflect', 'WebSocketWorker', 'wsWorker', 'Asset',
+            'AchievementTable', 'ArchFormulaTable', 'ArchFuelCntrTable', 'ArchFuelTable', 'ArchProductionTable', 'ArchPromptTable', 'ArchStateAcceptTable', 'ArchStateSendTable', 'ArchStorageTable', 'AvatarTable', 'BuffTable', 'ChatTable', 'ClassroomModeLessonTable', 'ClassroomModeTutorialTable', 'CodeblockLibTable', 'CodeblocksetTable', 'CodeblockTable', 'CodetipsTable', 'ConditionTable', 'CreatTypeTable', 'DescribeTable', 'DrawBoardColorTable', 'DropTable', 'EntityBuildObjectTable', 'EntityFunctionTable', 'EntityMaterialTable', 'EntitySoundTable', 'EntityTable', 'EntityVariaTable', 'EquipmentRandTable', 'EquipmentTable', 'GamePlatformTable', 'GameValueTable', 'HelpTable', 'HitBubbleTable', 'InitializationResurrectionTable', 'ItemArgumentTable', 'ItemEatableTable', 'ItemTable', 'LanguageTable', 'MailTemplateTable', 'MapCellTable', 'MapTable', 'MonsterAttributeTable', 'MonsterTable', 'NetworkConfigTable', 'NoviceManualTable', 'NoviceNodeTable', 'NoviceStepTable', 'NPCTable', 'NPCtalkTable', 'ObjectAnimationTable', 'ObjectInfoTable', 'ObjectStateTable', 'outputPaoMaDengTable', 'PlayerAreaBuyTable', 'QuotaTable', 'ResourcePointTable', 'ResSoundTable', 'RewardTable', 'RobotCodeblockTable', 'RobotLvTable', 'RobotSkinTable', 'RobotTable', 'RoleLvTable', 'RoleTable', 'SceneTable', 'SignInTable', 'SkillTable', 'TaskTable', 'WeakGuideTable', 'WeatherTable', 'WorksListCoverPatternTable', 'XinShouhelpTable',
+        ];
+
+        //属性白名单
+        //hasOwnProperty使用字符串反射属性，不能混淆，***cell中最常见这个
+        let propertiesReserved = [
+            //tween等方法中对象属性传入给引擎使用的 对象名需要加入白名单
+            'onChange', 'onChangeObj', 'loop'
+        ];
+        let reflectReg = /.hasOwnProperty\("([^"]+)"\)/g;
+        var r = null;
+        while (r = reflectReg.exec(sourceCode)) {
+            propertiesReserved.push(r[1]);
+        }
+
+        mangle = {
+            properties: {
+                reserved: propertiesReserved,
+                keep_quoted: true,
+            },
+
+            reserved: symbolReserved
+        }
+
+        const pbUnMangleContent = file.read(`${egret.args.projectDir}src/protocol/noMangle.txt`);
+        UglifyJS2.filterNoMangleProp(pbUnMangleContent && pbUnMangleContent.split(','));
+    }
+
+    let options = {};
+    //需要混淆
+    if (needConfuse) {
+        options = {
+            mangle: mangle,
+            sourceMap: {
+                filename: "main.js",
+                url: "main.js.map",
+                includeSources: true,
+            },
+            toplevel: true,
+            ie8: true,
+            warnings: true,
+        };
+    }
+    else {//不混淆
+        options = {
+            mangle: mangle,
+            compress: {
+                global_defs: {
+                    DEBUG: false,
+                    RELEASE: true
+                }
+            },
+            output: {
+                beautify: false
+            }
+        }
+    }
+
+    //继承的类名没替换，目前没影响
+    // __reflect(hq.prototype, "MapGrid", ["IPoolInstance"]);
+    // __reflect(SX.prototype, "MapElemSelectView", ["IPoolInstance"]),
+    // __reflect(FQ.prototype, "MapTerrainStruct", ["IPoolInstance"]),
+    // __reflect(s3.prototype, "DebugPlatform", ["Platform"]),
+    // __reflect(h3.prototype, "PlayerIdleStatus", ["IPlayerAnimUpdateStatus"]);
+    var result = UglifyJS2.minify(sourceCode, options);
     var code = result.code;
+
+    //unlify混淆类名后，__reflect保留了原有的className，反射时会有问题，需要一起替换，这里可能存在遗漏
+    var filterRe = /__reflect\(([^",]+).prototype,"([^"]+)"\)/g;
+    while (r = filterRe.exec(code)) {
+        if (r[1].length < 10 && r[2].length < 50) {
+            code = code.replace(r[0], `__reflect\(${r[1]}.prototype,"${r[1]}")${' '.repeat(r[2].length - r[1].length)}`)
+            result.mangleMap[r[2]] = r[1];//混淆后这里又改了一次,就根据改的来
+        }
+    }
+
+    //将上面闭包添加的结构也需要同名混淆 工具没有混淆 需要手动 并且替换成混淆短单词后需要补全空格 否则sourceMap会失效
+    //eg: bellPlanet.GuiWindow= D,
+    if (mainNamespace) {
+        let namespaceRe = /bellPlanet\.([\$\w]*)\s*=\s*([\$\w]*),/g;
+        while (r = namespaceRe.exec(code)) {
+            let newWord = r[0].replace('.' + r[1], '.' + r[2]);//前面要加上点 否则bellPlanet里面的单词可能会被替换成r[2]单词
+            let spaceCount = r[1].length - r[2].length;
+            if (spaceCount > 0) {
+                newWord += ' '.repeat(spaceCount);
+            }
+
+            code = code.replace(r[0], newWord);
+        }
+    }
+    file.save(`${egret.args.releaseDir}/mangleMap.json`, JSON.stringify(result.mangleMap));
+    file.save("main.js.map", result.map);
     return code;
 }
 exports.uglify = uglify;
+/**
+ * 处理主工程的闭包 防止全局变量污染问题 返回处理好的新文本
+ * @param {*} sourceFile 字符串 代码
+ * @param {*} mainNamespace 字符串 游戏命名空间
+ */
+function closure(sourceFile, mainNamespace) {
+    if (!mainNamespace) {
+        return sourceFile;
+    }
+
+    //加上闭包和放出Main入口函数给引擎使用
+    let result = sourceFile;
+    let sourceMapContext = null;
+    let sourceMapFlag = `\n//#`;
+    let sourceMapSplits = result.split(sourceMapFlag);
+    if (sourceMapSplits.length > 1) {//有这种注释的时候
+        result = sourceMapSplits[0];
+        sourceMapContext = '' + sourceMapFlag;
+        //后面的拼在一起
+        for (let i = 1; i < sourceMapSplits.length; i++) {
+            sourceMapContext += sourceMapSplits[i];
+        }
+    }
+
+    result = `var ${mainNamespace} = {};(function(){${result}window.Main=Main;})();`;//加上window.Main=Main是加上入口 引擎入口需要使用
+
+    //给各个类补充命名空间才能提供反射功能
+    //__reflect(GuiComponent.prototype, "GuiComponent"); 
+    //根据__reflect分割 但是需要匹配后面是(的时候  并且分割符不包括前后判断字符
+    let reflectRegex = /__reflect(?=\((?!function))/;//(?!function)是为了不要匹配到一种特殊的结构__reflect(function
+    let splits = result.split(reflectRegex);
+    if (splits.length <= 1) {
+        return sourceFile;
+    }
+
+    result = "";
+    for (let i = 0; i < splits.length; i++) {
+        let word = splits[i];
+        if (i <= splits.length - 2) {//只有包含倒数第二个之前的片段才需要拼接一个类
+            let classTypeRegex = /(?<=\().*?(?=\.prototype)/;//从后面反射拿到类名 __reflect(GuiComponent.prototype, "GuiComponent"); 
+            let classType = splits[i + 1].match(classTypeRegex)[0];
+            result += `${word}${mainNamespace}.${classType}=${classType};__reflect`;
+        }
+        else {
+            result += word;
+        }
+    }
+
+    if (sourceMapContext) {
+        result += sourceMapContext;
+    }
+
+    return result;
+}
+exports.closure = closure;
 function minify(sourceFile, output) {
     var defines = {
         DEBUG: false,

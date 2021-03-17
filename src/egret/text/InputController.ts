@@ -89,6 +89,7 @@ namespace egret {
             this.stageText.$addToStage();
 
             this.stageText.addEventListener("updateText", this.updateTextHandler, this);
+            this.stageText.addEventListener("updatefocus", this.onUpdateFocus, this);
             this._text.addEventListener(egret.TouchEvent.TOUCH_BEGIN, this.onMouseDownHandler, this);
 
             this.stageText.addEventListener("blur", this.blurHandler, this);
@@ -112,6 +113,7 @@ namespace egret {
             this.stageText.$removeFromStage();
 
             this.stageText.removeEventListener("updateText", this.updateTextHandler, this);
+            this.stageText.removeEventListener("updatefocus", this.onUpdateFocus, this);
             this._text.removeEventListener(egret.TouchEvent.TOUCH_BEGIN, this.onMouseDownHandler, this);
             this.tempStage.removeEventListener(egret.TouchEvent.TOUCH_BEGIN, this.onStageDownHandler, this);
 
@@ -154,6 +156,9 @@ namespace egret {
             //不再显示竖线，并且输入框显示最开始
             if (!this._isFocus) {
                 this._isFocus = true;
+
+                TextField.curFocusInput = this._text;
+
                 if (!event["showing"]) {
                     this._text.$setIsTyping(true);
                 }
@@ -171,6 +176,7 @@ namespace egret {
             if (this._isFocus) {
                 //不再显示竖线，并且输入框显示最开始
                 this._isFocus = false;
+                TextField.curFocusInput = null;
                 this.tempStage.removeEventListener(egret.TouchEvent.TOUCH_BEGIN, this.onStageDownHandler, this);
 
                 this._text.$setIsTyping(false);
@@ -187,7 +193,7 @@ namespace egret {
             this.$onFocus();
         }
 
-        $onFocus(): void {
+        $onFocus(active: boolean = false): void {
             let self = this;
             if (!this._text.visible) {
                 return;
@@ -202,12 +208,12 @@ namespace egret {
                 this.tempStage.addEventListener(egret.TouchEvent.TOUCH_BEGIN, this.onStageDownHandler, this);
             }, this);
 
-            if(egret.nativeRender) {
+            if (egret.nativeRender) {
                 this.stageText.$setText(this._text.$TextField[egret.sys.TextKeys.text]);
             }
 
             //强制更新输入框位置
-            this.stageText.$show();
+            this.stageText.$show(active);
         }
 
         //未点中文本
@@ -260,6 +266,11 @@ namespace egret {
             this._text.dispatchEvent(new egret.Event(egret.Event.CHANGE, true));
         }
 
+        private onUpdateFocus(event: Event) {
+            if (this._text.isIDEMode) {
+                this._text.dispatchEvent(new egret.Event("updatefocus", true, false, event.data));
+            }
+        }
         /**
          * @private
          * 
