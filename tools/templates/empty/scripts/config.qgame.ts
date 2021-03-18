@@ -11,7 +11,7 @@ const config: ResourceManagerConfig = {
     buildConfig: (params) => {
 
         const { target, command, projectName, version } = params;
-        const outputDir = `../${projectName}_qgame/src`;
+        const outputDir = `../${projectName}_qgame`;
         if (command == 'build') {
             return {
                 outputDir,
@@ -33,6 +33,9 @@ const config: ResourceManagerConfig = {
                     new ExmlPlugin('commonjs'), // 非 EUI 项目关闭此设置
                     new MiqgamePlugin(),
                     new UglifyPlugin([{
+                        sources: ["resource/default.thm.js"],
+                        target: "default.thm.min.js"
+                    }, {
                         sources: ["main.js"],
                         target: "main.min.js"
                     }

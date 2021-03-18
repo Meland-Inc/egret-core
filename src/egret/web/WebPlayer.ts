@@ -40,6 +40,7 @@ namespace egret.web {
         }
 
         private init(container: HTMLDivElement, options: runEgretOptions): void {
+            console.log("Egret Engine Version:", egret.Capabilities.engineVersion)
             let option = this.readOption(container, options);
             let stage = new egret.Stage();
             stage.$screen = this;

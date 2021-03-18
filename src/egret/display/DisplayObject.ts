@@ -127,6 +127,8 @@ namespace egret {
             if (egret.nativeRender) {
                 this.createNativeDisplayObject();
             }
+            //默认都是纯白
+            this.tint = 0xFFFFFF;
         }
 
         $nativeDisplayObject: egret_native.NativeDisplayObject;
@@ -819,7 +821,7 @@ namespace egret {
             self.$skewYdeg = value;
 
             value = clampRotation(value);
-            value = value / 180 * Math.PI;
+            value = (value + self.$rotation) / 180 * Math.PI;
 
             self.$skewY = value;
             self.$matrixDirty = true;
@@ -2295,6 +2297,33 @@ namespace egret {
             return false;
         }
 
+        /**
+         * inspired by pixi.js    
+         */
+        private _tint: number = 0;
+        /**
+         * @private
+         */
+        $tintRGB: number = 0;
+        /**
+         * Set a tint color for the current object
+         * @version Egret 5.2.24
+         * @platform Web,Native
+         * @language en_US
+         */
+        /**
+         * 给当前对象设置填充色
+         * @version Egret 5.2.24
+         * @platform Web,Native
+         * @language zh_CN
+         */
+        public get tint(): number {
+            return this._tint;
+        }
+        public set tint(value)  {
+            this._tint = value;
+            this.$tintRGB = (value >> 16) + (value & 0xff00) + ((value & 0xff) << 16);
+        }
         /**
          * @private
          * inspired by pixi.js

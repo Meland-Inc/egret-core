@@ -1,6 +1,6 @@
 {
   "name": "egret",
-  "version": "5.2.16",
+  "version": "5.2.33",
   "private": true,
   "author": "egret-labs",
   "bin": {
@@ -189,6 +189,10 @@
             "platform": "web"
           },
           {
+            "path": "web/WebSysImpl.ts",
+            "platform": "web"
+          },
+          {
             "path": "web/EgretWeb.ts",
             "platform": "web"
           },
@@ -258,6 +262,14 @@
           },
           {
             "path": "web/rendering/webgl/WebGLRenderer.ts",
+            "platform": "web"
+          },
+          {
+            "path": "web/rendering/webgl/TextAtlasStrategy.ts",
+            "platform": "web"
+          },
+          {
+            "path": "web/rendering/webgl/TextAtlasRender.ts",
             "platform": "web"
           },
           {
@@ -343,16 +355,6 @@
         "files": [],
         "root": "",
         "dependencies": []
-      },
-      {
-        "name": "experimental",
-        "description": "egret experimental function lib",
-        "description_en": "egret experimental function lib",
-        "files": [],
-        "root": "src/extension/experimental",
-        "dependencies": [
-          "egret"
-        ]
       },
       {
         "name": "egret-facebook",
