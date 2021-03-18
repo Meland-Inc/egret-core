@@ -1470,16 +1470,36 @@ declare namespace egret {
         private getResponseType;
         /**
          * @private
+         */
+        private sound;
+        /**
+         * @private
          *
          * @param loader
          */
         private loadSound;
+        private onSoundoadComplete;
+        private onSoundLoaderPostProgress;
+        private onSoundLoaderError;
+        private removeSoundLoaderListeners;
+        /**
+         * @private
+         */
+        private imageLoader;
+        /**
+         * @private
+         */
+        private virtualUrl;
         /**
          * @private
          *
          * @param loader
          */
         private loadTexture;
+        private onImageLoadComplete;
+        private onImageLoaderPostProgress;
+        private onImageLoaderError;
+        private removeImageLoaderListeners;
         /**
          * @private
          */
