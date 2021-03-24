@@ -263,6 +263,7 @@ namespace egret.web {
         private _supportedCompressedTextureInfo: SupportedCompressedTextureInfo[] = [];
         public pvrtc: any;
         public etc1: any;
+        public s3tc: any;
         private _buildSupportedCompressedTextureInfo(/*gl: WebGLRenderingContext, compressedTextureExNames: string[],*/ extensions: any[]): SupportedCompressedTextureInfo[] {
             // if (compressedTextureExNames.length === 0) {
             //     return [];
@@ -336,12 +337,18 @@ namespace egret.web {
             if (this.etc1) {
                 this.etc1.name = 'WEBGL_compressed_texture_etc1';
             }
+
+            this.s3tc = gl.getExtension('WEBGL_compressed_texture_s3tc') || gl.getExtension('WEBKIT_WEBGL_compressed_texture_s3tc');
+            if (this.s3tc) {
+                this.s3tc.name = 'WEBGL_compressed_texture_s3tc';
+            }
             //
             egret.Capabilities.supportedCompressedTexture = egret.Capabilities.supportedCompressedTexture || {} as SupportedCompressedTexture;
             egret.Capabilities.supportedCompressedTexture.pvrtc = !!this.pvrtc;
             egret.Capabilities.supportedCompressedTexture.etc1 = !!this.etc1;
+            egret.Capabilities.supportedCompressedTexture.s3tc = !!this.s3tc;
             //
-            this._supportedCompressedTextureInfo = this._buildSupportedCompressedTextureInfo(/*this.context, compressedTextureExNames,*/[this.etc1, this.pvrtc]);
+            this._supportedCompressedTextureInfo = this._buildSupportedCompressedTextureInfo(/*this.context, compressedTextureExNames,*/[this.etc1, this.pvrtc, this.s3tc]);
         }
 
         private handleContextLost() {

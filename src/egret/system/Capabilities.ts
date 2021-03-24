@@ -152,18 +152,18 @@ namespace egret {
          * @language zh_CN
          */
         export const OPPOGAME = "oppogame";
-         /**
-         * Running on QQ mini game
-         * @version Egret 5.2.25
-         * @platform All
-         * @language en_US
-         */
-         /**
-         * 运行在 QQ 小游戏上
-         * @version Egret 5.2.25
-         * @platform All
-         * @language zh_CN
-         */
+        /**
+        * Running on QQ mini game
+        * @version Egret 5.2.25
+        * @platform All
+        * @language en_US
+        */
+        /**
+        * 运行在 QQ 小游戏上
+        * @version Egret 5.2.25
+        * @platform All
+        * @language zh_CN
+        */
         export const QQGAME = "qqgame";
         /**
          * Running on vivo mini game
@@ -171,12 +171,12 @@ namespace egret {
          * @platform All
          * @language en_US
          */
-         /**
-         * 运行在 vivo 小游戏上
-         * @version Egret 5.2.23
-         * @platform All
-         * @language zh_CN
-         */
+        /**
+        * 运行在 vivo 小游戏上
+        * @version Egret 5.2.23
+        * @platform All
+        * @language zh_CN
+        */
         export const VIVOGAME = "vivogame";
 
     }
@@ -184,6 +184,7 @@ namespace egret {
     export interface SupportedCompressedTexture {
         pvrtc: boolean;
         etc1: boolean;
+        s3tc: boolean;
     }
 
     /**
