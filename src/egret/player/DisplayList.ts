@@ -155,6 +155,9 @@ namespace egret.sys {
         }
 
         private bitmapData: egret.BitmapData;
+        public get $bitmapData(): egret.BitmapData {
+            return this.bitmapData;
+        }
 
         /**
          * @private
