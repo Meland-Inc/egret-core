@@ -9105,6 +9105,7 @@ declare namespace egret.sys {
          */
         drawToSurface(): number;
         private bitmapData;
+        readonly $bitmapData: egret.BitmapData;
         /**
          * @private
          * 改变画布的尺寸，由于画布尺寸修改会清空原始画布。所以这里将原始画布绘制到一个新画布上，再与原始画布交换。

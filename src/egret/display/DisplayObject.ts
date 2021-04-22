@@ -1172,6 +1172,10 @@ namespace egret {
                 }
             }
             else {
+                //上面创建了纹理 不需要时需要释放 否则会内存泄露 游戏实际测出
+                if (self.$displayList && self.$displayList.$bitmapData) {
+                    self.$displayList.$bitmapData.$dispose();
+                }
                 self.$displayList = null;
             }
         }

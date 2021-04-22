@@ -1700,6 +1700,10 @@ var egret;
                 }
             }
             else {
+                //上面创建了纹理 不需要时需要释放 否则会内存泄露 游戏实际测出
+                if (self.$displayList && self.$displayList.$bitmapData) {
+                    self.$displayList.$bitmapData.$dispose();
+                }
                 self.$displayList = null;
             }
         };
@@ -13462,6 +13466,13 @@ var egret;
                 }
                 return drawCalls;
             };
+            Object.defineProperty(DisplayList.prototype, "$bitmapData", {
+                get: function () {
+                    return this.bitmapData;
+                },
+                enumerable: true,
+                configurable: true
+            });
             /**
              * @private
              * 改变画布的尺寸，由于画布尺寸修改会清空原始画布。所以这里将原始画布绘制到一个新画布上，再与原始画布交换。
