@@ -5622,6 +5622,7 @@ declare namespace egret {
     const is_compressed_texture = "is_compressed_texture";
     const glContext = "glContext";
     const UNPACK_PREMULTIPLY_ALPHA_WEBGL = "UNPACK_PREMULTIPLY_ALPHA_WEBGL";
+    const FORCE_NO_PREMULTIPLY_ALPHA_WEBGL = "FORCE_NO_PREMULTIPLY_ALPHA_WEBGL";
     /**
      * A BitmapData object contains an array of pixel data. This data can represent either a fully opaque bitmap or a
      * transparent bitmap that contains alpha channel data. Either type of BitmapData object is stored as a buffer of 32-bit
