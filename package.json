@@ -199,7 +199,7 @@
         "description": "assetsmanager 资源管理器",
         "description_en": "AssetsManager",
         "files": [],
-        "root": "",
+        "root": "src/extension/assetsmanager",
         "dependencies": []
       },
       {
@@ -396,4 +396,4 @@
     ]
   },
   "dependencies": {}
-}
+}

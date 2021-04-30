@@ -11059,6 +11059,7 @@ declare namespace egret {
     interface SupportedCompressedTexture {
         pvrtc: boolean;
         etc1: boolean;
+        s3tc: boolean;
     }
     /**
      * The Capabilities class provides properties that describe the system and runtime that are hosting the application.
