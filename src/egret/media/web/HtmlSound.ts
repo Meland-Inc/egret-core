@@ -130,7 +130,7 @@ namespace egret.web {
             }
 
             function onAudioLoaded(): void {
-                HtmlSound.$recycle(this.url, audio);
+                HtmlSound.$recycle(self.url, audio);
                 removeListeners();
                 if (ua.indexOf("firefox") >= 0) {//火狐兼容
                     audio.pause();
@@ -139,7 +139,6 @@ namespace egret.web {
                 if (ie) {
                     document.body.appendChild(audio);
                 }
-                
 
                 self.loaded = true;
                 self.dispatchEventWith(egret.Event.COMPLETE);
@@ -194,11 +193,13 @@ namespace egret.web {
          * @inheritDoc
          */
         public close() {
-            if (this.loaded == false && this.originAudio)
+            if (this.loaded && this.originAudio) {
                 this.originAudio.src = "";
+            }
             if (this.originAudio)
                 this.originAudio = null;
             HtmlSound.$clear(this.url);
+            this.loaded = false;
         }
 
         /**

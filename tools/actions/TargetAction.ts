@@ -19,9 +19,8 @@ export type TargetTemplateConfig = {
 
 export async function buildBefore(context) {
     // console.log(context)
-    const target = egret.args.target;
-    if (target != 'web') {
-        // const targetRoot = path.resolve(__dirname, '../../egret-target-wxgame/target');
+    let target = egret.args.target;
+    if (target != 'web' && target != "mygame") {
         const targetRoot = launcher.getLauncherLibrary().getTarget(target);
         if (!targetRoot) {
             throw `找不到 target ${target},请在 Egret Launcher 中安装`

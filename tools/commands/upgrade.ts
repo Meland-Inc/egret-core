@@ -48,7 +48,15 @@ class UpgradeCommand implements egret.Command {
             { "v": "5.1.1", command: Upgrade_5_1_1 },
             { "v": "5.1.2", command: Upgrade_5_1_2 },
             { "v": "5.2.13", command: Upgrade_5_2_13 },
-            { "v": "5.2.16", command: Upgrade_5_2_16 },
+            { "v": "5.2.17", command: Upgrade_5_2_17 },
+            { "v": "5.2.19", command: Upgrade_5_2_19 },
+            { "v": "5.2.22", command: Upgrade_5_2_22 },
+            { "v": "5.2.23", command: Upgrade_5_2_23 },
+            { "v": "5.2.25", command: Upgrade_5_2_25 },
+            { "v": "5.2.28", command: Upgrade_5_2_28 },
+            { "v": "5.2.31", command: Upgrade_5_2_31 },
+            { "v": "5.2.32", command: Upgrade_5_2_32 },
+            { "v": "5.2.33", command: Upgrade_5_2_33 }
         ];
 
         try {
@@ -134,15 +142,12 @@ function upgrade(info: VersionInfo) {
 
 
 class Upgrade_5_1_1 {
-
-
     async execute() {
         return 0;
     }
 }
 
 class Upgrade_5_1_2 {
-
     async execute() {
         console.log("【警告】: 如果您尝试发布到微信小游戏，建议您创建一个新项目，而不是使用 egret upgrade 命令")
         return 0;
@@ -150,7 +155,6 @@ class Upgrade_5_1_2 {
 }
 
 class Upgrade_5_2_13 {
-
     async execute() {
         file.copyAsync(path.join(egret.root, "tools", "templates", "empty", "scripts", "baidugame"), path.join(egret.args.projectDir, "scripts", "baidugame"));
         file.copyAsync(path.join(egret.root, "tools", "templates", "empty", "scripts", "config.baidugame.ts"), path.join(egret.args.projectDir, "scripts", "config.baidugame.ts"));
@@ -158,11 +162,76 @@ class Upgrade_5_2_13 {
     }
 }
 
-class Upgrade_5_2_16 {
-
+class Upgrade_5_2_17 {
     async execute() {
         file.copyAsync(path.join(egret.root, "tools", "templates", "empty", "scripts", "qgame"), path.join(egret.args.projectDir, "scripts", "qgame"));
         file.copyAsync(path.join(egret.root, "tools", "templates", "empty", "scripts", "config.qgame.ts"), path.join(egret.args.projectDir, "scripts", "config.qgame.ts"));
+        return 0;
+    }
+}
+
+class Upgrade_5_2_19 {
+    async execute() {
+        file.copyAsync(path.join(egret.root, "tools", "templates", "empty", "scripts", "oppogame"), path.join(egret.args.projectDir, "scripts", "oppogame"));
+        file.copyAsync(path.join(egret.root, "tools", "templates", "empty", "scripts", "config.oppogame.ts"), path.join(egret.args.projectDir, "scripts", "config.oppogame.ts"));
+        return 0;
+    }
+}
+
+class Upgrade_5_2_22 {
+    async execute() {
+        file.copyAsync(path.join(egret.root, "tools", "templates", "empty", "scripts", "vivogame"), path.join(egret.args.projectDir, "scripts", "vivogame"));
+        file.copyAsync(path.join(egret.root, "tools", "templates", "empty", "scripts", "config.vivogame.ts"), path.join(egret.args.projectDir, "scripts", "config.vivogame.ts"));
+        file.copyAsync(path.join(egret.root, "tools", "templates", "empty", "api.d.ts"), path.join(egret.args.projectDir, "scripts", "api.d.ts"));
+        return 0;
+    }
+}
+
+class Upgrade_5_2_23 {
+    async execute() {
+        file.copyAsync(path.join(egret.root, "tools", "templates", "empty", "scripts", "vivogame"), path.join(egret.args.projectDir, "scripts", "vivogame"));
+        return 0;
+    }
+}
+
+class Upgrade_5_2_25 {
+    async execute() {
+        file.copyAsync(path.join(egret.root, "tools", "templates", "empty", "scripts", "qqgame"), path.join(egret.args.projectDir, "scripts", "qqgame"));
+        file.copyAsync(path.join(egret.root, "tools", "templates", "empty", "scripts", "config.qqgame.ts"), path.join(egret.args.projectDir, "scripts", "config.qqgame.ts"));
+
+        file.copyAsync(path.join(egret.root, "tools", "templates", "empty", "scripts", "mygame"), path.join(egret.args.projectDir, "scripts", "mygame"));
+        file.copyAsync(path.join(egret.root, "tools", "templates", "empty", "scripts", "config.mygame.ts"), path.join(egret.args.projectDir, "scripts", "config.mygame.ts"));
+        return 0;
+    }
+}
+
+class Upgrade_5_2_28 {
+    async execute() {
+        file.copyAsync(path.join(egret.root, "tools", "templates", "empty", "scripts", "vivogame"), path.join(egret.args.projectDir, "scripts", "vivogame"));
+        file.copyAsync(path.join(egret.root, "tools", "templates", "empty", "scripts", "config.vivogame.ts"), path.join(egret.args.projectDir, "scripts", "config.vivogame.ts"));
+        return 0;
+    }
+}
+class Upgrade_5_2_31 {
+    async execute() {
+        file.copyAsync(path.join(egret.root, "tools", "templates", "empty", "scripts", "wxgame"), path.join(egret.args.projectDir, "scripts", "wxgame"));
+        file.copyAsync(path.join(egret.root, "tools", "templates", "empty", "scripts", "config.wxgame.ts"), path.join(egret.args.projectDir, "scripts", "config.wxgame.ts"));
+        file.copyAsync(path.join(egret.root, "tools", "templates", "empty", "api.d.ts"), path.join(egret.args.projectDir, "scripts", "api.d.ts"));
+        return 0;
+    }
+}
+class Upgrade_5_2_32 {
+    async execute() {
+        file.copyAsync(path.join(egret.root, "tools", "templates", "empty", "scripts", "qqgame"), path.join(egret.args.projectDir, "scripts", "qqgame"));
+        file.copyAsync(path.join(egret.root, "tools", "templates", "empty", "scripts", "config.qqgame.ts"), path.join(egret.args.projectDir, "scripts", "config.qqgame.ts"));
+        file.copyAsync(path.join(egret.root, "tools", "templates", "empty", "api.d.ts"), path.join(egret.args.projectDir, "scripts", "api.d.ts"));
+        return 0;
+    }
+}
+class Upgrade_5_2_33 {
+    async execute() {
+        file.copyAsync(path.join(egret.root, "tools", "templates", "empty", "scripts", "mygame"), path.join(egret.args.projectDir, "scripts", "mygame"));
+        file.copyAsync(path.join(egret.root, "tools", "templates", "empty", "scripts", "config.mygame.ts"), path.join(egret.args.projectDir, "scripts", "config.mygame.ts"));
         return 0;
     }
 }

@@ -14,8 +14,8 @@ function publishEXML(exmls, exmlPublishPolicy, themeDatas) {
     themeDatas.forEach(function (theme) {
         if (!theme.exmls || theme.autoGenerateExmlsList) {
             theme.exmls = [];
-            for (var _i = 0, exmls_1 = exmls; _i < exmls_1.length; _i++) {
-                var exml_1 = exmls_1[_i];
+            for (var _i = 0, exmls_2 = exmls; _i < exmls_2.length; _i++) {
+                var exml_1 = exmls_2[_i];
                 theme.exmls.push(exml_1.filename);
             }
         }
@@ -44,8 +44,8 @@ function publishEXML(exmls, exmlPublishPolicy, themeDatas) {
     //6.对exml文件列表进行筛选
     var screenExmls = [];
     var versionExmlHash = {};
-    for (var _i = 0, exmls_2 = exmls; _i < exmls_2.length; _i++) {
-        var exml_2 = exmls_2[_i];
+    for (var _i = 0, exmls_1 = exmls; _i < exmls_1.length; _i++) {
+        var exml_2 = exmls_1[_i];
         for (var _a = 0, paths_1 = paths; _a < paths_1.length; _a++) {
             var path = paths_1[_a];
             // if (path === exml.filename) {
@@ -135,8 +135,8 @@ function publishEXML(exmls, exmlPublishPolicy, themeDatas) {
     var files = themeDatas.map(function (thmData) {
         var path = thmData.path;
         if (exmlPublishPolicy == "commonjs") {
-            var content = "\n                function __extends(d, b) {\n                    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];\n                        function __() {\n                            this.constructor = d;\n                        }\n                    __.prototype = b.prototype;\n                    d.prototype = new __();\n                };";
-            content += "\n                window.generateEUI = {};\n                generateEUI.paths = {};\n                generateEUI.styles = " + JSON.stringify(thmData.styles) + ";\n                generateEUI.skins = " + JSON.stringify(thmData.skins) + ";";
+            var content = "\n                var __extends = this && this.__extends|| function (d, b) {\n                    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];\n                        function __() {\n                            this.constructor = d;\n                        }\n                    __.prototype = b.prototype;\n                    d.prototype = new __();\n                };";
+            content += "\n                window.generateEUI = window.generateEUI||{};\n                generateEUI.paths = generateEUI.paths||{};\n                generateEUI.styles = " + JSON.stringify(thmData.styles) + ";\n                generateEUI.skins = " + JSON.stringify(thmData.skins) + ";";
             var namespaces = [];
             for (var _i = 0, _a = thmData.exmls; _i < _a.length; _i++) {
                 var item = _a[_i];
@@ -150,7 +150,7 @@ function publishEXML(exmls, exmlPublishPolicy, themeDatas) {
                 }
                 content += "generateEUI.paths['" + item.path + "'] = window." + item.className + " = " + item.gjs;
             }
-            var result = namespaces.map(function (v) { return "window." + v + "={};"; }).join("\n");
+            var result = namespaces.map(function (v) { return "window." + v + "=window." + v + "||{};"; }).join("\n");
             content = result + content;
             path = path.replace("thm.json", "thm.js");
             return { path: path, content: content };
@@ -163,7 +163,7 @@ function publishEXML(exmls, exmlPublishPolicy, themeDatas) {
             var jsonParserStr = file.read(Path.join(egret.root, "tools/lib/eui/JsonParserFactory.js"));
             var content = "" + jsonParserStr;
             content +=
-                "window.generateEUI2 = {};\ngenerateEUI2.paths = {};\ngenerateEUI2.styles = " + JSON.stringify(thmData.styles) + ";\ngenerateEUI2.skins = " + JSON.stringify(thmData.skins) + ";";
+                "window.generateEUI2 = window.generateEUI2||{};\n                generateEUI2.paths = generateEUI2.paths||{};\n                generateEUI2.styles = " + JSON.stringify(thmData.styles) + ";\n                generateEUI2.skins = " + JSON.stringify(thmData.skins) + ";";
             path = path.replace("thm.json", "thm.js");
             if (exmlPublishPolicy == "json") {
                 content = content.replace(/generateEUI2/g, "generateJSON");

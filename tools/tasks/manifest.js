@@ -13,8 +13,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [0, t.value];
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -35,6 +35,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var path = require("path");
+var fs = require("fs");
 var manifest = {
     initial: [],
     game: [],
@@ -49,26 +50,52 @@ var ManifestPlugin = /** @class */ (function () {
         if (options.hash) {
             console.log('ManifestPlugin 在未来的 5.3.x 版本中将不再支持 hash 参数，请使用 RenamePlugin 代替');
         }
+        if (!this.options.useWxPlugin) {
+            this.options.useWxPlugin = false;
+        }
+        if (!this.options.qqPlugin) {
+            this.options.qqPlugin = { use: false, pluginList: [] };
+        }
     }
     ManifestPlugin.prototype.onFile = function (file) {
         return __awaiter(this, void 0, void 0, function () {
-            var filename, extname, new_file_path, basename, crc32, crc32_file_path, relative;
-            return __generator(this, function (_a) {
+            var filename, extname, new_file_path, basename, _a, useWxPlugin, hash, verbose, new_basename, isEngineJS, engineJS, i, jsName, engine_path, crc32, crc32_file_path, relative;
+            return __generator(this, function (_b) {
                 filename = file.relative;
                 extname = path.extname(filename);
                 if (extname == ".js") {
                     new_file_path = void 0;
                     basename = path.basename(filename);
-                    if (this.options.hash == 'crc32') {
+                    _a = this.options, useWxPlugin = _a.useWxPlugin, hash = _a.hash, verbose = _a.verbose;
+                    new_basename = basename.substr(0, basename.length - file.extname.length);
+                    isEngineJS = false;
+                    if (useWxPlugin) {
+                        engineJS = ['assetsmanager', 'dragonBones', 'egret', 'game', 'eui', 'socket', 'tween'];
+                        for (i in engineJS) {
+                            jsName = engineJS[i];
+                            engine_path = jsName + '.min.js';
+                            if (filename.indexOf(engine_path) > 0) {
+                                isEngineJS = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (isEngineJS) {
+                        new_file_path = "egret-library/" + new_basename + file.extname;
+                    }
+                    else if (hash == 'crc32') {
                         crc32 = globals.getCrc32();
                         crc32_file_path = crc32(file.contents);
-                        new_file_path = "js/" + basename.substr(0, basename.length - file.extname.length) + "_" + crc32_file_path + file.extname;
+                        new_file_path = "js/" + new_basename + "_" + crc32_file_path + file.extname;
                     }
                     else {
-                        new_file_path = "js/" + basename.substr(0, basename.length - file.extname.length) + file.extname;
+                        new_file_path = "js/" + new_basename + file.extname;
                     }
                     file.outputDir = "";
                     file.path = path.join(file.base, new_file_path);
+                    if (this.options.info && this.options.info.target == 'vivogame') {
+                        file.path = path.join(file.base, '../', 'engine', new_file_path);
+                    }
                     relative = file.relative.split("\\").join('/');
                     if (file.origin.indexOf('libs/') >= 0) {
                         manifest.initial.push(relative);
@@ -76,7 +103,7 @@ var ManifestPlugin = /** @class */ (function () {
                     else {
                         manifest.game.push(relative);
                     }
-                    if (this.options.verbose) {
+                    if (verbose) {
                         this.verboseInfo.push({ filename: filename, new_file_path: new_file_path });
                     }
                 }
@@ -86,20 +113,41 @@ var ManifestPlugin = /** @class */ (function () {
     };
     ManifestPlugin.prototype.onFinish = function (pluginContext) {
         return __awaiter(this, void 0, void 0, function () {
-            var output, extname, contents;
-            return __generator(this, function (_a) {
-                output = this.options.output;
+            var _a, output, useWxPlugin, qqPlugin, extname, contents, target;
+            return __generator(this, function (_b) {
+                _a = this.options, output = _a.output, useWxPlugin = _a.useWxPlugin, qqPlugin = _a.qqPlugin;
                 extname = path.extname(output);
                 contents = '';
+                target = pluginContext.buildConfig.target;
                 switch (extname) {
                     case ".json":
                         contents = JSON.stringify(manifest, null, '\t');
                         break;
                     case ".js":
-                        contents = manifest.initial.concat(manifest.game).map(function (fileName) { return "require(\"./" + fileName + "\")"; }).join("\n");
+                        contents = manifest.initial.concat(manifest.game).map(function (fileName) {
+                            var result = "require(\"./" + fileName + "\")";
+                            if (target == 'vivogame') {
+                                var configPath = path.join(pluginContext.outputDir, "../", "minigame.config.js");
+                                if (!fs.existsSync(configPath)) {
+                                    //5.2.28版本，vivo更新了项目结构，老项目需要升级
+                                    fs.writeFileSync(path.join(pluginContext.outputDir, "../", "vivo更新了项目结构，请重新创建vivo小游戏项目.js"), "vivo更新了项目结构，请重新创建vivo小游戏项目");
+                                }
+                                var _name = path.basename(fileName);
+                                result = "require(\"./js/" + _name + "\")";
+                            }
+                            else if (useWxPlugin) {
+                                if (fileName.indexOf('egret-library') == 0) {
+                                    result = "requirePlugin(\"" + fileName + "\")";
+                                }
+                            }
+                            return result;
+                        }).join("\n");
                         break;
                 }
-                pluginContext.createFile(this.options.output, new Buffer(contents));
+                if (qqPlugin.use) {
+                    contents = qqPlugin.pluginList.join("\n") + "\n" + contents;
+                }
+                pluginContext.createFile(output, new Buffer(contents));
                 if (this.options.verbose) {
                     this.verboseInfo.forEach(function (item) {
                         console.log("manifest-plugin: " + item.filename + " => " + item.new_file_path);
