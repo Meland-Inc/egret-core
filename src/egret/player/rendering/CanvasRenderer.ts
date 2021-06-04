@@ -46,7 +46,7 @@ namespace egret {
     let renderBufferPool: sys.RenderBuffer[] = [];//渲染缓冲区对象池
     let renderBufferPool_Filters: sys.RenderBuffer[] = [];//滤镜缓冲区对象池
     export class CanvasRenderer {
-
+        private _tempResultPos: Point = new Point();//临时计算坐标使用 防止gc
         private nestLevel: number = 0;//渲染的嵌套层次，0表示在调用堆栈的最外层。
 
         public render(displayObject: DisplayObject, buffer: sys.RenderBuffer, matrix: Matrix, forRenderTexture?: boolean): number {
@@ -196,11 +196,26 @@ namespace egret {
                     compositeOp = defaultCompositeOp;
                 }
             }
-            let displayBounds = displayObject.$getOriginalBounds();
-            const displayBoundsX = displayBounds.x;
-            const displayBoundsY = displayBounds.y;
-            const displayBoundsWidth = displayBounds.width;
-            const displayBoundsHeight = displayBounds.height;
+            let isCameraFilter: boolean = displayObject.tag == TAG.cameraFilter;//镜头滤镜
+            let displayBoundsX: number
+            let displayBoundsY: number
+            let displayBoundsWidth: number
+            let displayBoundsHeight: number
+            if (isCameraFilter) {
+                let cameraPos: Point = displayObject.globalToLocal(0, 0, this._tempResultPos);
+                displayBoundsX = Math.round(cameraPos.x);
+                displayBoundsY = Math.round(cameraPos.y);
+                let m: Matrix = displayObject.$getConcatenatedMatrix();
+                displayBoundsWidth = displayObject.$stage.$stageWidth / m.a;
+                displayBoundsHeight = displayObject.$stage.$stageHeight / m.d;
+            }
+            else {
+                const displayBounds = displayObject.$getOriginalBounds();
+                displayBoundsX = displayBounds.x;
+                displayBoundsY = displayBounds.y;
+                displayBoundsWidth = displayBounds.width;
+                displayBoundsHeight = displayBounds.height;
+            }
             if (displayBoundsWidth <= 0 || displayBoundsHeight <= 0) {
                 return drawCalls;
             }

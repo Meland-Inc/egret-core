@@ -16574,6 +16574,7 @@ var egret;
     var renderBufferPool_Filters = []; //滤镜缓冲区对象池
     var CanvasRenderer = /** @class */ (function () {
         function CanvasRenderer() {
+            this._tempResultPos = new egret.Point(); //临时计算坐标使用 防止gc
             this.nestLevel = 0; //渲染的嵌套层次，0表示在调用堆栈的最外层。
             this.renderingMask = false;
         }
@@ -16722,11 +16723,26 @@ var egret;
                     compositeOp = defaultCompositeOp;
                 }
             }
-            var displayBounds = displayObject.$getOriginalBounds();
-            var displayBoundsX = displayBounds.x;
-            var displayBoundsY = displayBounds.y;
-            var displayBoundsWidth = displayBounds.width;
-            var displayBoundsHeight = displayBounds.height;
+            var isCameraFilter = displayObject.tag == egret.TAG.cameraFilter; //镜头滤镜
+            var displayBoundsX;
+            var displayBoundsY;
+            var displayBoundsWidth;
+            var displayBoundsHeight;
+            if (isCameraFilter) {
+                var cameraPos = displayObject.globalToLocal(0, 0, this._tempResultPos);
+                displayBoundsX = Math.round(cameraPos.x);
+                displayBoundsY = Math.round(cameraPos.y);
+                var m = displayObject.$getConcatenatedMatrix();
+                displayBoundsWidth = displayObject.$stage.$stageWidth / m.a;
+                displayBoundsHeight = displayObject.$stage.$stageHeight / m.d;
+            }
+            else {
+                var displayBounds = displayObject.$getOriginalBounds();
+                displayBoundsX = displayBounds.x;
+                displayBoundsY = displayBounds.y;
+                displayBoundsWidth = displayBounds.width;
+                displayBoundsHeight = displayBounds.height;
+            }
             if (displayBoundsWidth <= 0 || displayBoundsHeight <= 0) {
                 return drawCalls;
             }
