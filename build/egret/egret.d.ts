@@ -10566,6 +10566,7 @@ interface CanvasRenderingContext2D {
 }
 declare namespace egret {
     class CanvasRenderer {
+        private _tempResultPos;
         private nestLevel;
         render(displayObject: DisplayObject, buffer: sys.RenderBuffer, matrix: Matrix, forRenderTexture?: boolean): number;
         /**
