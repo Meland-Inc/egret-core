@@ -110,6 +110,19 @@ namespace egret.web {
             //     offsetX = Math.round(offsetX);
             //     offsetY = Math.round(offsetY);
             // }
+
+            if (displayObject.name && displayObject.parent) {
+                if (displayObject.parent.name == "scene" && displayObject.name == "map") {
+                    WebGLVertexArrayObject.isIncreateRenderRect = true;
+                }
+                else if (displayObject.parent.name == "scene" && displayObject.name == "background") {
+                    WebGLVertexArrayObject.isIncreateRenderRect = false;
+                }
+                else if (displayObject.parent instanceof egret.Stage && displayObject.name == "fairygui") {
+                    WebGLVertexArrayObject.isIncreateRenderRect = false;
+                }
+            }
+
             let drawCalls = 0;
             let node: sys.RenderNode;
             let displayList = displayObject.$displayList;

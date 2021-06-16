@@ -34,7 +34,10 @@ namespace egret.web {
      * 用来维护顶点数组
      */
     export class WebGLVertexArrayObject {
-
+        public static isIncreateRenderRect: boolean = false;// 是否增加渲染矩形区域
+        private static increateRenderRectX: number = 0;      // 增加渲染矩形区域x分量
+        private static increateRenderRectY: number = 0;      // 增加渲染矩形区域y分量
+        private static increateRenderRectNum: number = 0.25; // 增加渲染矩形区域的数值大小
         /*定义顶点格式
         * (x: 8 * 4 = 32) + (y: 8 * 4 = 32) + (u: 8 * 4 = 32) + (v: 8 * 4 = 32) + (tintcolor: 8 * 4 = 32) = (8 * 4 = 32) * (x + y + u + v + tintcolor: 5);
         */
@@ -173,9 +176,9 @@ namespace egret.web {
             alpha = Math.min(alpha, 1.0);
             const globalTintColor = buffer.globalTintColor || 0xFFFFFF;
             const currentTexture = buffer.currentTexture;
-            alpha = ( (alpha < 1.0 && currentTexture && currentTexture[UNPACK_PREMULTIPLY_ALPHA_WEBGL]) ?
-                 WebGLUtils.premultiplyTint(globalTintColor, alpha) 
-                 : globalTintColor + (alpha * 255 << 24));
+            alpha = ((alpha < 1.0 && currentTexture && currentTexture[UNPACK_PREMULTIPLY_ALPHA_WEBGL]) ?
+                WebGLUtils.premultiplyTint(globalTintColor, alpha)
+                : globalTintColor + (alpha * 255 << 24));
             /*
             临时测试
             */
@@ -252,6 +255,18 @@ namespace egret.web {
                 this.vertexIndex += meshUVs.length / 2;
                 this.indexIndex += meshIndices.length;
             } else {
+
+                if (WebGLVertexArrayObject.isIncreateRenderRect) {
+                    // 缩放或旋转图像时影响像素沿 x 轴定位的值 ，左右转向
+                    WebGLVertexArrayObject.increateRenderRectX = a < 0 ? -WebGLVertexArrayObject.increateRenderRectNum : WebGLVertexArrayObject.increateRenderRectNum;
+                    // 缩放或旋转图像时影响像素沿 y 轴定位的值 ，上下转向
+                    WebGLVertexArrayObject.increateRenderRectY = d < 0 ? -WebGLVertexArrayObject.increateRenderRectNum : WebGLVertexArrayObject.increateRenderRectNum;
+                } else {
+                    WebGLVertexArrayObject.increateRenderRectX = 0;
+                    WebGLVertexArrayObject.increateRenderRectY = 0;
+                }
+
+
                 let width = textureSourceWidth;
                 let height = textureSourceHeight;
                 let w = sourceWidth;
@@ -266,32 +281,32 @@ namespace egret.web {
                     sourceWidth = sourceHeight / width;
                     sourceHeight = temp / height;
                     // xy
-                    vertices[index++] = tx;
-                    vertices[index++] = ty;
+                    vertices[index++] = tx - WebGLVertexArrayObject.increateRenderRectX;
+                    vertices[index++] = ty - WebGLVertexArrayObject.increateRenderRectY;
                     // uv
                     vertices[index++] = sourceWidth + sourceX;
                     vertices[index++] = sourceY;
                     // alpha
                     verticesUint32View[index++] = alpha;
                     // xy
-                    vertices[index++] = a * w + tx;
-                    vertices[index++] = b * w + ty;
+                    vertices[index++] = a * w + tx + WebGLVertexArrayObject.increateRenderRectX;
+                    vertices[index++] = b * w + ty - WebGLVertexArrayObject.increateRenderRectY;
                     // uv
                     vertices[index++] = sourceWidth + sourceX;
                     vertices[index++] = sourceHeight + sourceY;
                     // alpha
                     verticesUint32View[index++] = alpha;
                     // xy
-                    vertices[index++] = a * w + c * h + tx;
-                    vertices[index++] = d * h + b * w + ty;
+                    vertices[index++] = a * w + c * h + tx + WebGLVertexArrayObject.increateRenderRectX;
+                    vertices[index++] = d * h + b * w + ty + WebGLVertexArrayObject.increateRenderRectY;
                     // uv
                     vertices[index++] = sourceX;
                     vertices[index++] = sourceHeight + sourceY;
                     // alpha
                     verticesUint32View[index++] = alpha;
                     // xy
-                    vertices[index++] = c * h + tx;
-                    vertices[index++] = d * h + ty;
+                    vertices[index++] = c * h + tx - WebGLVertexArrayObject.increateRenderRectX;
+                    vertices[index++] = d * h + ty + WebGLVertexArrayObject.increateRenderRectY;
                     // uv
                     vertices[index++] = sourceX;
                     vertices[index++] = sourceY;
@@ -302,32 +317,32 @@ namespace egret.web {
                     sourceWidth = sourceWidth / width;
                     sourceHeight = sourceHeight / height;
                     // xy
-                    vertices[index++] = tx;
-                    vertices[index++] = ty;
+                    vertices[index++] = tx - WebGLVertexArrayObject.increateRenderRectX;
+                    vertices[index++] = ty - WebGLVertexArrayObject.increateRenderRectY;
                     // uv
                     vertices[index++] = sourceX;
                     vertices[index++] = sourceY;
                     // alpha
                     verticesUint32View[index++] = alpha;
                     // xy
-                    vertices[index++] = a * w + tx;
-                    vertices[index++] = b * w + ty;
+                    vertices[index++] = a * w + tx + WebGLVertexArrayObject.increateRenderRectX;
+                    vertices[index++] = b * w + ty - WebGLVertexArrayObject.increateRenderRectY;
                     // uv
                     vertices[index++] = sourceWidth + sourceX;
                     vertices[index++] = sourceY;
                     // alpha
                     verticesUint32View[index++] = alpha;
                     // xy
-                    vertices[index++] = a * w + c * h + tx;
-                    vertices[index++] = d * h + b * w + ty;
+                    vertices[index++] = a * w + c * h + tx + WebGLVertexArrayObject.increateRenderRectX;
+                    vertices[index++] = d * h + b * w + ty + WebGLVertexArrayObject.increateRenderRectY;
                     // uv
                     vertices[index++] = sourceWidth + sourceX;
                     vertices[index++] = sourceHeight + sourceY;
                     // alpha
                     verticesUint32View[index++] = alpha;
                     // xy
-                    vertices[index++] = c * h + tx;
-                    vertices[index++] = d * h + ty;
+                    vertices[index++] = c * h + tx - WebGLVertexArrayObject.increateRenderRectX;
+                    vertices[index++] = d * h + ty + WebGLVertexArrayObject.increateRenderRectY;
                     // uv
                     vertices[index++] = sourceX;
                     vertices[index++] = sourceHeight + sourceY;
