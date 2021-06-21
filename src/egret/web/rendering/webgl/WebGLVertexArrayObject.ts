@@ -258,9 +258,9 @@ namespace egret.web {
 
                 if (WebGLVertexArrayObject.isIncreateRenderRect) {
                     // 缩放或旋转图像时影响像素沿 x 轴定位的值 ，左右转向
-                    WebGLVertexArrayObject.increateRenderRectX = a < 0 ? -WebGLVertexArrayObject.increateRenderRectNum : WebGLVertexArrayObject.increateRenderRectNum;
+                    WebGLVertexArrayObject.increateRenderRectX = WebGLVertexArrayObject.increateRenderRectNum * a;
                     // 缩放或旋转图像时影响像素沿 y 轴定位的值 ，上下转向
-                    WebGLVertexArrayObject.increateRenderRectY = d < 0 ? -WebGLVertexArrayObject.increateRenderRectNum : WebGLVertexArrayObject.increateRenderRectNum;
+                    WebGLVertexArrayObject.increateRenderRectY = WebGLVertexArrayObject.increateRenderRectNum * d;
                 } else {
                     WebGLVertexArrayObject.increateRenderRectX = 0;
                     WebGLVertexArrayObject.increateRenderRectY = 0;
