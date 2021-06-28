@@ -611,7 +611,7 @@ namespace dragonBones {
                         }
                         else {
                             const displayData = slot.displayData;
-                            if (displayData && displayData instanceof ImageDisplayData && displayData.texture) {
+                            if (displayData && displayData instanceof ImageDisplayData && displayData.texture && displayData.texture.parent) {
                                 const scale = displayData.texture.parent.scale;
                                 helpRectangle.x = 0;
                                 helpRectangle.y = 0;
@@ -619,67 +619,69 @@ namespace dragonBones {
                                 helpRectangle.height = displayData.texture.region.height * scale;
                             }
                             else {
+                                if (displayData instanceof ImageDisplayData && displayData.texture && !displayData.parent) {
+                                    console.error('EgretArmatureDisplay->$measureContentBounds, displayData.texture.parent is null');
+                                }
                                 continue;
                             }
-                        }
 
-                        matrix.$transformBounds(helpRectangle);
+                            matrix.$transformBounds(helpRectangle);
 
-                        const left = helpRectangle.x;
-                        const top = helpRectangle.y;
-                        const right = helpRectangle.x + helpRectangle.width;
-                        const bottom = helpRectangle.y + helpRectangle.height;
+                            const left = helpRectangle.x;
+                            const top = helpRectangle.y;
+                            const right = helpRectangle.x + helpRectangle.width;
+                            const bottom = helpRectangle.y + helpRectangle.height;
 
-                        if (isFirst) {
-                            isFirst = false;
-                            bounds.x = left;
-                            bounds.y = top;
-                            bounds.width = right;
-                            bounds.height = bottom;
-                        }
-                        else {
-                            if (left < bounds.x) {
+                            if (isFirst) {
+                                isFirst = false;
                                 bounds.x = left;
-                            }
-
-                            if (top < bounds.y) {
                                 bounds.y = top;
-                            }
-
-                            if (right > bounds.width) {
                                 bounds.width = right;
-                            }
-
-                            if (bottom > bounds.height) {
                                 bounds.height = bottom;
                             }
+                            else {
+                                if (left < bounds.x) {
+                                    bounds.x = left;
+                                }
+
+                                if (top < bounds.y) {
+                                    bounds.y = top;
+                                }
+
+                                if (right > bounds.width) {
+                                    bounds.width = right;
+                                }
+
+                                if (bottom > bounds.height) {
+                                    bounds.height = bottom;
+                                }
+                            }
+                        }
+
+                        bounds.width -= bounds.x;
+                        bounds.height -= bounds.y;
+
+                        if (isV5) {
+                            if (this._bounds === null) {
+                                this._bounds = new egret.Rectangle();
+                            }
+
+                            this._bounds.copyFrom(bounds);
                         }
                     }
-
-                    bounds.width -= bounds.x;
-                    bounds.height -= bounds.y;
-
-                    if (isV5) {
+                else if (isV5) {
                         if (this._bounds === null) {
                             this._bounds = new egret.Rectangle();
                         }
 
-                        this._bounds.copyFrom(bounds);
-                    }
-                }
-                else if (isV5) {
-                    if (this._bounds === null) {
-                        this._bounds = new egret.Rectangle();
+                        bounds.copyFrom(this._bounds);
                     }
 
-                    bounds.copyFrom(this._bounds);
+                    return bounds as any; // V5
                 }
 
-                return bounds as any; // V5
+                return super.$measureContentBounds(bounds) as any; // V5
             }
-
-            return super.$measureContentBounds(bounds) as any; // V5
-        }
 
         /**
          * @inheritDoc
