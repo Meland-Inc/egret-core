@@ -15806,7 +15806,7 @@ var dragonBones;
                         }
                         else {
                             var displayData = slot.displayData;
-                            if (displayData && displayData instanceof dragonBones.ImageDisplayData && displayData.texture) {
+                            if (displayData && displayData instanceof dragonBones.ImageDisplayData && displayData.texture && displayData.texture.parent) {
                                 var scale = displayData.texture.parent.scale;
                                 helpRectangle.x = 0;
                                 helpRectangle.y = 0;
