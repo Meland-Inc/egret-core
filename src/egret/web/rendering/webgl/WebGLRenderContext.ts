@@ -511,7 +511,7 @@ namespace egret.web {
             texture[is_compressed_texture] = true;
             gl.bindTexture(gl.TEXTURE_2D, texture);
             texture[UNPACK_PREMULTIPLY_ALPHA_WEBGL] = true;//这个要要一直为true 即使pc真实没有使用预乘 否则鹿龙骨头发白 UI半透效果发白
-            if (egret.Capabilities.os == "Windows PC") {//只有window下KTX使用BC3压缩 才需要走强制非预乘
+            if (egret.Capabilities.os == "Windows PC" || egret.Capabilities.os == "Mac OS") {//PC 下KTX使用BC3压缩 才需要走强制非预乘
                 gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
                 texture[FORCE_NO_PREMULTIPLY_ALPHA_WEBGL] = true;
             }
