@@ -921,7 +921,7 @@ namespace egret.web {
                             gl.activeTexture(gl.TEXTURE1);
                             gl.bindTexture(gl.TEXTURE_2D, data.texture[etc_alpha_mask]);
                         }
-                        if (data.texture[FORCE_NO_PREMULTIPLY_ALPHA_WEBGL]) {//没有预乘图片的需要用非预乘专用shader shader里面做后乘
+                        else if (data.texture[FORCE_NO_PREMULTIPLY_ALPHA_WEBGL]) {//没有预乘图片的需要用非预乘专用shader shader里面做后乘
                             program = EgretWebGLProgram.getProgram(gl, EgretShaderLib.default_vert, EgretShaderLib.noPremultiplyAlphaTexture_frag, "noPremultiplyAlphaTexture");
                         }
                         else {
