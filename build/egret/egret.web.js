@@ -5866,6 +5866,16 @@ var egret;
                     this.indexIndex += meshIndices.length;
                 }
                 else {
+                    if (WebGLVertexArrayObject.isIncreateRenderRect) {
+                        // 缩放或旋转图像时影响像素沿 x 轴定位的值 ，左右转向
+                        WebGLVertexArrayObject.increateRenderRectX = WebGLVertexArrayObject.increateRenderRectNum * a;
+                        // 缩放或旋转图像时影响像素沿 y 轴定位的值 ，上下转向
+                        WebGLVertexArrayObject.increateRenderRectY = WebGLVertexArrayObject.increateRenderRectNum * d;
+                    }
+                    else {
+                        WebGLVertexArrayObject.increateRenderRectX = 0;
+                        WebGLVertexArrayObject.increateRenderRectY = 0;
+                    }
                     var width = textureSourceWidth;
                     var height = textureSourceHeight;
                     var w = sourceWidth;
@@ -5880,32 +5890,32 @@ var egret;
                         sourceWidth = sourceHeight / width;
                         sourceHeight = temp / height;
                         // xy
-                        vertices[index++] = tx;
-                        vertices[index++] = ty;
+                        vertices[index++] = tx - WebGLVertexArrayObject.increateRenderRectX;
+                        vertices[index++] = ty - WebGLVertexArrayObject.increateRenderRectY;
                         // uv
                         vertices[index++] = sourceWidth + sourceX;
                         vertices[index++] = sourceY;
                         // alpha
                         verticesUint32View[index++] = alpha;
                         // xy
-                        vertices[index++] = a * w + tx;
-                        vertices[index++] = b * w + ty;
+                        vertices[index++] = a * w + tx + WebGLVertexArrayObject.increateRenderRectX;
+                        vertices[index++] = b * w + ty - WebGLVertexArrayObject.increateRenderRectY;
                         // uv
                         vertices[index++] = sourceWidth + sourceX;
                         vertices[index++] = sourceHeight + sourceY;
                         // alpha
                         verticesUint32View[index++] = alpha;
                         // xy
-                        vertices[index++] = a * w + c * h + tx;
-                        vertices[index++] = d * h + b * w + ty;
+                        vertices[index++] = a * w + c * h + tx + WebGLVertexArrayObject.increateRenderRectX;
+                        vertices[index++] = d * h + b * w + ty + WebGLVertexArrayObject.increateRenderRectY;
                         // uv
                         vertices[index++] = sourceX;
                         vertices[index++] = sourceHeight + sourceY;
                         // alpha
                         verticesUint32View[index++] = alpha;
                         // xy
-                        vertices[index++] = c * h + tx;
-                        vertices[index++] = d * h + ty;
+                        vertices[index++] = c * h + tx - WebGLVertexArrayObject.increateRenderRectX;
+                        vertices[index++] = d * h + ty + WebGLVertexArrayObject.increateRenderRectY;
                         // uv
                         vertices[index++] = sourceX;
                         vertices[index++] = sourceY;
@@ -5916,32 +5926,32 @@ var egret;
                         sourceWidth = sourceWidth / width;
                         sourceHeight = sourceHeight / height;
                         // xy
-                        vertices[index++] = tx;
-                        vertices[index++] = ty;
+                        vertices[index++] = tx - WebGLVertexArrayObject.increateRenderRectX;
+                        vertices[index++] = ty - WebGLVertexArrayObject.increateRenderRectY;
                         // uv
                         vertices[index++] = sourceX;
                         vertices[index++] = sourceY;
                         // alpha
                         verticesUint32View[index++] = alpha;
                         // xy
-                        vertices[index++] = a * w + tx;
-                        vertices[index++] = b * w + ty;
+                        vertices[index++] = a * w + tx + WebGLVertexArrayObject.increateRenderRectX;
+                        vertices[index++] = b * w + ty - WebGLVertexArrayObject.increateRenderRectY;
                         // uv
                         vertices[index++] = sourceWidth + sourceX;
                         vertices[index++] = sourceY;
                         // alpha
                         verticesUint32View[index++] = alpha;
                         // xy
-                        vertices[index++] = a * w + c * h + tx;
-                        vertices[index++] = d * h + b * w + ty;
+                        vertices[index++] = a * w + c * h + tx + WebGLVertexArrayObject.increateRenderRectX;
+                        vertices[index++] = d * h + b * w + ty + WebGLVertexArrayObject.increateRenderRectY;
                         // uv
                         vertices[index++] = sourceWidth + sourceX;
                         vertices[index++] = sourceHeight + sourceY;
                         // alpha
                         verticesUint32View[index++] = alpha;
                         // xy
-                        vertices[index++] = c * h + tx;
-                        vertices[index++] = d * h + ty;
+                        vertices[index++] = c * h + tx - WebGLVertexArrayObject.increateRenderRectX;
+                        vertices[index++] = d * h + ty + WebGLVertexArrayObject.increateRenderRectY;
                         // uv
                         vertices[index++] = sourceX;
                         vertices[index++] = sourceHeight + sourceY;
@@ -5967,6 +5977,10 @@ var egret;
                 this.vertexIndex = 0;
                 this.indexIndex = 0;
             };
+            WebGLVertexArrayObject.isIncreateRenderRect = false; // 是否增加渲染矩形区域
+            WebGLVertexArrayObject.increateRenderRectX = 0; // 增加渲染矩形区域x分量
+            WebGLVertexArrayObject.increateRenderRectY = 0; // 增加渲染矩形区域y分量
+            WebGLVertexArrayObject.increateRenderRectNum = 0.25; // 增加渲染矩形区域的数值大小
             return WebGLVertexArrayObject;
         }());
         web.WebGLVertexArrayObject = WebGLVertexArrayObject;
@@ -6525,7 +6539,7 @@ var egret;
                 texture[egret.is_compressed_texture] = true;
                 gl.bindTexture(gl.TEXTURE_2D, texture);
                 texture[egret.UNPACK_PREMULTIPLY_ALPHA_WEBGL] = true; //这个要要一直为true 即使pc真实没有使用预乘 否则鹿龙骨头发白 UI半透效果发白
-                if (egret.Capabilities.os == "Windows PC") { //只有window下KTX使用BC3压缩 才需要走强制非预乘
+                if (egret.Capabilities.os == "Windows PC" || egret.Capabilities.os == "Mac OS") { //PC 下KTX使用BC3压缩 才需要走强制非预乘
                     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
                     texture[egret.FORCE_NO_PREMULTIPLY_ALPHA_WEBGL] = true;
                 }
@@ -6882,7 +6896,7 @@ var egret;
                                 gl.activeTexture(gl.TEXTURE1);
                                 gl.bindTexture(gl.TEXTURE_2D, data.texture[egret.etc_alpha_mask]);
                             }
-                            if (data.texture[egret.FORCE_NO_PREMULTIPLY_ALPHA_WEBGL]) { //没有预乘图片的需要用非预乘专用shader shader里面做后乘
+                            else if (data.texture[egret.FORCE_NO_PREMULTIPLY_ALPHA_WEBGL]) { //没有预乘图片的需要用非预乘专用shader shader里面做后乘
                                 program = web.EgretWebGLProgram.getProgram(gl, web.EgretShaderLib.default_vert, web.EgretShaderLib.noPremultiplyAlphaTexture_frag, "noPremultiplyAlphaTexture");
                             }
                             else {
@@ -7713,6 +7727,7 @@ var egret;
                 var node;
                 var displayList = displayObject.$displayList;
                 if (displayList && !isStage) {
+                    web.WebGLVertexArrayObject.isIncreateRenderRect = true;
                     if (displayObject.$cacheDirty || displayObject.$renderDirty ||
                         displayList.$canvasScaleX != egret.sys.DisplayList.$canvasScaleX ||
                         displayList.$canvasScaleY != egret.sys.DisplayList.$canvasScaleY) {
@@ -7721,6 +7736,7 @@ var egret;
                     node = displayList.$renderNode;
                 }
                 else {
+                    web.WebGLVertexArrayObject.isIncreateRenderRect = false;
                     if (displayObject.$renderDirty) {
                         node = displayObject.$getRenderNode();
                     }
