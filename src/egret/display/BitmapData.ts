@@ -43,9 +43,11 @@ namespace egret {
     export const engine_default_empty_texture = 'engine_default_empty_texture';
     export const is_compressed_texture = 'is_compressed_texture';
     export const glContext = 'glContext';
-    export const UNPACK_PREMULTIPLY_ALPHA_WEBGL = 'UNPACK_PREMULTIPLY_ALPHA_WEBGL';
+    export const UNPACK_PREMULTIPLY_ALPHA_WEBGL = 'UNPACK_PREMULTIPLY_ALPHA_WEBGL';//由于pc ktx引入的特性 这个已经不能代表实际的预乘了 by xiangqian 2021.4.30
+    //这个是强制不使用预乘alpha时的标记 一般在ktx pc压缩图片使用（不能直接使用UNPACK_PREMULTIPLY_ALPHA_WEBGL 龙骨和半透滤镜默认预乘了但是没有设置该值）
+    export const FORCE_NO_PREMULTIPLY_ALPHA_WEBGL = 'FORCE_NO_PREMULTIPLY_ALPHA_WEBGL';
 
-    
+
 
     /**
      * A BitmapData object contains an array of pixel data. This data can represent either a fully opaque bitmap or a
@@ -269,7 +271,7 @@ namespace egret {
             this.debugCompressedTextureURL = '';
             this.etcAlphaMask = null;
             ///
-            
+
             if (egret.nativeRender) {
                 egret_native.NativeDisplayObject.disposeNativeBitmapData(this.$nativeBitmapData);
             }
@@ -389,7 +391,7 @@ namespace egret {
         public hasCompressed2d(): boolean {
             return !!this.getCompressed2dTextureData();
         }
-        
+
         public clearCompressedTextureData(): void {
             this.compressedTextureData.length = 0;
         }

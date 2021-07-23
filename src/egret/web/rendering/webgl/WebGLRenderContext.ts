@@ -263,6 +263,7 @@ namespace egret.web {
         private _supportedCompressedTextureInfo: SupportedCompressedTextureInfo[] = [];
         public pvrtc: any;
         public etc1: any;
+        public s3tc: any;
         private _buildSupportedCompressedTextureInfo(/*gl: WebGLRenderingContext, compressedTextureExNames: string[],*/ extensions: any[]): SupportedCompressedTextureInfo[] {
             // if (compressedTextureExNames.length === 0) {
             //     return [];
@@ -336,12 +337,18 @@ namespace egret.web {
             if (this.etc1) {
                 this.etc1.name = 'WEBGL_compressed_texture_etc1';
             }
+
+            this.s3tc = gl.getExtension('WEBGL_compressed_texture_s3tc') || gl.getExtension('WEBKIT_WEBGL_compressed_texture_s3tc');
+            if (this.s3tc) {
+                this.s3tc.name = 'WEBGL_compressed_texture_s3tc';
+            }
             //
             egret.Capabilities.supportedCompressedTexture = egret.Capabilities.supportedCompressedTexture || {} as SupportedCompressedTexture;
             egret.Capabilities.supportedCompressedTexture.pvrtc = !!this.pvrtc;
             egret.Capabilities.supportedCompressedTexture.etc1 = !!this.etc1;
+            egret.Capabilities.supportedCompressedTexture.s3tc = !!this.s3tc;
             //
-            this._supportedCompressedTextureInfo = this._buildSupportedCompressedTextureInfo(/*this.context, compressedTextureExNames,*/[this.etc1, this.pvrtc]);
+            this._supportedCompressedTextureInfo = this._buildSupportedCompressedTextureInfo(/*this.context, compressedTextureExNames,*/[this.etc1, this.pvrtc, this.s3tc]);
         }
 
         private handleContextLost() {
@@ -503,8 +510,14 @@ namespace egret.web {
             texture[glContext] = gl;
             texture[is_compressed_texture] = true;
             gl.bindTexture(gl.TEXTURE_2D, texture);
-            gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1);
-            texture[UNPACK_PREMULTIPLY_ALPHA_WEBGL] = true;
+            texture[UNPACK_PREMULTIPLY_ALPHA_WEBGL] = true;//这个要要一直为true 即使pc真实没有使用预乘 否则鹿龙骨头发白 UI半透效果发白
+            if (egret.Capabilities.os == "Windows PC" || egret.Capabilities.os == "Mac OS") {//PC 下KTX使用BC3压缩 才需要走强制非预乘
+                gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+                texture[FORCE_NO_PREMULTIPLY_ALPHA_WEBGL] = true;
+            }
+            else {
+                gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+            }
             gl.compressedTexImage2D(gl.TEXTURE_2D, levels, internalFormat, width, height, 0, data);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -907,6 +920,9 @@ namespace egret.web {
                             ///need refactor
                             gl.activeTexture(gl.TEXTURE1);
                             gl.bindTexture(gl.TEXTURE_2D, data.texture[etc_alpha_mask]);
+                        }
+                        else if (data.texture[FORCE_NO_PREMULTIPLY_ALPHA_WEBGL]) {//没有预乘图片的需要用非预乘专用shader shader里面做后乘
+                            program = EgretWebGLProgram.getProgram(gl, EgretShaderLib.default_vert, EgretShaderLib.noPremultiplyAlphaTexture_frag, "noPremultiplyAlphaTexture");
                         }
                         else {
                             program = EgretWebGLProgram.getProgram(gl, EgretShaderLib.default_vert, EgretShaderLib.texture_frag, "texture");

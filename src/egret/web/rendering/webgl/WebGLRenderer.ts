@@ -110,10 +110,12 @@ namespace egret.web {
             //     offsetX = Math.round(offsetX);
             //     offsetY = Math.round(offsetY);
             // }
+
             let drawCalls = 0;
             let node: sys.RenderNode;
             let displayList = displayObject.$displayList;
             if (displayList && !isStage) {
+                web.WebGLVertexArrayObject.isIncreateRenderRect = true;
                 if (displayObject.$cacheDirty || displayObject.$renderDirty ||
                     displayList.$canvasScaleX != sys.DisplayList.$canvasScaleX ||
                     displayList.$canvasScaleY != sys.DisplayList.$canvasScaleY) {
@@ -122,6 +124,7 @@ namespace egret.web {
                 node = displayList.$renderNode;
             }
             else {
+                web.WebGLVertexArrayObject.isIncreateRenderRect = false;
                 if (displayObject.$renderDirty) {
                     node = displayObject.$getRenderNode();
                 }
