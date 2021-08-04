@@ -558,7 +558,7 @@ declare module RES {
      * @platform Web,Native
      * @language zh_CN
      */
-    function getResAsync(key: string): Promise<any> | void;
+    function getResAsync(key: string): Promise<any>;
     /**
      * Asynchronous mode to get the resources in the configuration. As long as the resources exist in the configuration file, you can get it in an asynchronous way.
      * @param key A sbuKeys attribute or name property in a configuration file.
@@ -596,11 +596,12 @@ declare module RES {
      * @param compFunc 回调函数。示例：compFunc(data,url):void。
      * @param thisObject 回调函数的 this 引用。
      * @param type 文件类型(可选)。请使用 ResourceItem 类中定义的静态常量。若不设置将根据文件扩展名生成。
+     * @param realUrl 当有realUrl时，url参数只作为名字key使用
      * @version Egret 5.2
      * @platform Web,Native
      * @language zh_CN
      */
-    function getResByUrl(url: string, compFunc?: Function, thisObject?: any, type?: string): Promise<any>;
+    function getResByUrl(url: string, compFunc?: Function, thisObject?: any, type?: string, realUrl?: string): Promise<any>;
     /**
      * Destroy a single resource file or a set of resources to the cache data, to return whether to delete success.
      * @param name Name attribute or resource group name of the load item in the configuration file.
@@ -855,8 +856,9 @@ declare module RES {
          * @param compFunc {Function}
          * @param thisObject {any}
          * @param type {string}
+         * @param realUrl {string} 当有realUrl时，url参数只作为名字key使用
          */
-        getResByUrl(url: string, compFunc?: Function, thisObject?: any, type?: string): Promise<any>;
+        getResByUrl(url: string, compFunc?: Function, thisObject?: any, type?: string, realUrl?: string): Promise<any>;
         /**
          * 销毁单个资源文件或一组资源的缓存数据,返回是否删除成功。
          * @method RES.destroyRes
@@ -1041,6 +1043,15 @@ declare module RES.processor {
      */
     function getRelativePath(url: string, file: string): string;
     var ImageProcessor: Processor;
+    const KTXTextureProcessor: RES.processor.Processor;
+    /**
+    *
+    */
+    function makeEtc1SeperatedAlphaResourceInfo(resource: ResourceInfo): ResourceInfo;
+    /**
+    *
+    */
+    const ETC1KTXProcessor: Processor;
     var BinaryProcessor: Processor;
     var TextProcessor: Processor;
     var JsonProcessor: Processor;
