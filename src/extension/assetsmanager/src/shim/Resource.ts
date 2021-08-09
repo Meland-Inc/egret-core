@@ -451,17 +451,18 @@ module RES {
      * @param compFunc 回调函数。示例：compFunc(data,url):void。
      * @param thisObject 回调函数的 this 引用。
      * @param type 文件类型(可选)。请使用 ResourceItem 类中定义的静态常量。若不设置将根据文件扩展名生成。
+     * @param realUrl 当有realUrl时，url参数只作为名字key使用
      * @version Egret 5.2
      * @platform Web,Native
      * @language zh_CN
      */
-    export function getResByUrl(url: string, compFunc?: Function, thisObject?: any, type: string = ""): Promise<any> {
+    export function getResByUrl(url: string, compFunc?: Function, thisObject?: any, type: string = "", realUrl?: string): Promise<any> {
         if(!instance){
             let message = egret.sys.tr(3200)
             egret.warn(message)
             return Promise.reject(message);
         }
-        return compatiblePromise(instance.getResByUrl(url, compFunc, thisObject, type));
+        return compatiblePromise(instance.getResByUrl(url, compFunc, thisObject, type, realUrl));
     }
     /**
      * Destroy a single resource file or a set of resources to the cache data, to return whether to delete success.
@@ -895,16 +896,21 @@ module RES {
          * @param compFunc {Function}
          * @param thisObject {any}
          * @param type {string}
+         * @param realUrl {string} 当有realUrl时，url参数只作为名字key使用
          */
         @checkNull
-        public getResByUrl(url: string, compFunc?: Function, thisObject?: any, type: string = ""): Promise<any> {
+        public getResByUrl(url: string, compFunc?: Function, thisObject?: any, type: string = "", realUrl?: string): Promise<any> {
             let r = config.getResource(url);
             if (!r) {
                 if (!type) {
                     type = config.__temp__get__type__via__url(url);
                 }
                 // manager.config.addResourceData({ name: url, url: url });
-                r = { name: url, url, type, root: '', extra: 1 };
+                let urlPath = url;
+                if (realUrl) {
+                    urlPath = realUrl;
+                }
+                r = { name: url, url: urlPath, type, root: '', extra: 1 };
                 config.addResourceData(r);
                 r = config.getResource(url);
                 if (!r) {

@@ -1430,18 +1430,19 @@ var RES;
      * @param compFunc 回调函数。示例：compFunc(data,url):void。
      * @param thisObject 回调函数的 this 引用。
      * @param type 文件类型(可选)。请使用 ResourceItem 类中定义的静态常量。若不设置将根据文件扩展名生成。
+     * @param realUrl 当有realUrl时，url参数只作为名字key使用
      * @version Egret 5.2
      * @platform Web,Native
      * @language zh_CN
      */
-    function getResByUrl(url, compFunc, thisObject, type) {
+    function getResByUrl(url, compFunc, thisObject, type, realUrl) {
         if (type === void 0) { type = ""; }
         if (!instance) {
             var message = egret.sys.tr(3200);
             egret.warn(message);
             return Promise.reject(message);
         }
-        return compatiblePromise(instance.getResByUrl(url, compFunc, thisObject, type));
+        return compatiblePromise(instance.getResByUrl(url, compFunc, thisObject, type, realUrl));
     }
     RES.getResByUrl = getResByUrl;
     /**
@@ -1867,8 +1868,9 @@ var RES;
          * @param compFunc {Function}
          * @param thisObject {any}
          * @param type {string}
+         * @param realUrl {string} 当有realUrl时，url参数只作为名字key使用
          */
-        Resource.prototype.getResByUrl = function (url, compFunc, thisObject, type) {
+        Resource.prototype.getResByUrl = function (url, compFunc, thisObject, type, realUrl) {
             var _this = this;
             if (type === void 0) { type = ""; }
             var r = RES.config.getResource(url);
@@ -1877,7 +1879,11 @@ var RES;
                     type = RES.config.__temp__get__type__via__url(url);
                 }
                 // manager.config.addResourceData({ name: url, url: url });
-                r = { name: url, url: url, type: type, root: '', extra: 1 };
+                var urlPath = url;
+                if (realUrl) {
+                    urlPath = realUrl;
+                }
+                r = { name: url, url: urlPath, type: type, root: '', extra: 1 };
                 RES.config.addResourceData(r);
                 r = RES.config.getResource(url);
                 if (!r) {
