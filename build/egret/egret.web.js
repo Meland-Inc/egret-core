@@ -2474,6 +2474,8 @@ var egret;
                 inputElement.style.wordBreak = "break-all";
                 //隐藏输入框
                 inputElement.style.opacity = 0;
+                //在runtime下类似qiankun微前端下可能会位置偏移 如果设置全局boxSizing导致这里heigh计算了padding 文本高度不够
+                inputElement.style.boxSizing = 'content-box';
                 inputElement.oninput = function () {
                     if (self._stageText) {
                         self._stageText._onInput();
