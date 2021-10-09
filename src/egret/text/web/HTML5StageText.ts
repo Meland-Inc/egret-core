@@ -104,10 +104,10 @@ namespace egret.web {
          * 
          */
         private _initElement(): void {
-          this.fixElementPos();
+            this.fixElementPos();
         }
 
-        public fixElementPos():void{
+        public fixElementPos(): void {
             let point = this.$textfield.localToGlobal(0, 0);
             let x = point.x;
             let y = point.y;
@@ -184,7 +184,7 @@ namespace egret.web {
             }
         }
 
-    	activeShowKeyboard(): void {
+        activeShowKeyboard(): void {
             if (this.htmlInput._needShow) {
                 if (this._isNeedShow) {
                     this._isNeedShow = false;
@@ -748,6 +748,9 @@ namespace egret.web {
 
             //隐藏输入框
             inputElement.style.opacity = 0;
+
+            //在runtime下类似qiankun微前端下可能会位置偏移 如果设置全局boxSizing导致这里heigh计算了padding 文本高度不够
+            inputElement.style.boxSizing = 'content-box';
 
             inputElement.oninput = function () {
                 if (self._stageText) {
