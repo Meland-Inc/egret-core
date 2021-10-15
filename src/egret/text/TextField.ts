@@ -322,7 +322,7 @@ namespace egret {
                 16: false,         //italic,
                 17: true,          //fontStringChanged,
                 18: false,         //textLinesChanged,
-                19: false,          //wordWrap
+                19: true,          //wordWrap   //modify by XQ 默认需要打开
                 20: false,         //displayAsPassword
                 21: 0,              //maxChars
                 22: 0, //selectionActivePosition,
@@ -708,7 +708,7 @@ namespace egret {
                 this.$nativeDisplayObject.setWordWrap(value);
             }
         }
-        
+
         protected inputUtils: InputController = null;
 
         /**
@@ -1224,14 +1224,14 @@ namespace egret {
 
         /**
          * Indicates a user can enter into the text field character set. If you restrict property is null, you can enter any character. If you restrict property is an empty string, you can not enter any character. If you restrict property is a string of characters, you can enter only characters in the string in the text field. The string is scanned from left to right. You can use a hyphen (-) to specify a range. Only restricts user interaction; a script may put any text into the text field. <br/>
-                  * If the string of characters caret (^) at the beginning, all characters are initially accepted, then the string are excluded from receiving ^ character. If the string does not begin with a caret (^) to, any characters are initially accepted and then a string of characters included in the set of accepted characters. <br/>
-                  * The following example allows only uppercase characters, spaces, and numbers in the text field: <br/>
-                  * My_txt.restrict = "A-Z 0-9"; <br/>
-                  * The following example includes all characters except lowercase letters: <br/>
-                  * My_txt.restrict = "^ a-z"; <br/>
-                  * If you need to enter characters \ ^, use two backslash "\\ -" "\\ ^": <br/>
-                  * Can be used anywhere in the string ^ to rule out including characters and switch between characters, but can only be used to exclude a ^. The following code includes only uppercase letters except uppercase Q: <br/>
-                  * My_txt.restrict = "A-Z ^ Q"; <br/>
+                  * If the string of characters caret (^) at the beginning, all characters are initially accepted, then the string are excluded from receiving ^ character. If the string does not begin with a caret (^) to, any characters are initially accepted and then a string of characters included in the set of accepted characters. <br/>
+                  * The following example allows only uppercase characters, spaces, and numbers in the text field: <br/>
+                  * My_txt.restrict = "A-Z 0-9"; <br/>
+                  * The following example includes all characters except lowercase letters: <br/>
+                  * My_txt.restrict = "^ a-z"; <br/>
+                  * If you need to enter characters \ ^, use two backslash "\\ -" "\\ ^": <br/>
+                  * Can be used anywhere in the string ^ to rule out including characters and switch between characters, but can only be used to exclude a ^. The following code includes only uppercase letters except uppercase Q: <br/>
+                  * My_txt.restrict = "A-Z ^ Q"; <br/>
          * @version Egret 2.4
          * @platform Web,Native
          * @default null
@@ -1649,7 +1649,7 @@ namespace egret {
          * @desc 输入文本请求失焦
          * @author mangit
          */
-        public setFocusOut():void {
+        public setFocusOut(): void {
             if (this.type == egret.TextFieldType.INPUT && this.$stage) {
                 this.inputUtils.stageText.$hide();
             }
