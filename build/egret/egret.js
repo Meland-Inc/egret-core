@@ -22218,6 +22218,14 @@ var egret;
          * @language zh_CN
          */
         TextField.default_textColor = 0xffffff;
+        /**
+         * 文本显示X偏移值
+         */
+        TextField.displayXOffset = 0;
+        /**
+         * 文本显示Y偏移值
+         */
+        TextField.displayYOffset = 0;
         return TextField;
     }(egret.DisplayObject));
     egret.TextField = TextField;

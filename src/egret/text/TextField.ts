@@ -283,6 +283,14 @@ namespace egret {
          */
         public static curFocusInput: TextField;
         /**
+         * 文本显示X偏移值
+         */
+        public static displayXOffset: number = 0;
+        /**
+         * 文本显示Y偏移值
+         */
+        public static displayYOffset: number = 0;
+        /**
          * ide模式，由于dom的input不支持富文本，所以需要特殊处理
          * 该模式下，隐藏input，显示egret的textfield，并监听各种事件
          */
