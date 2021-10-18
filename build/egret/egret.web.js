@@ -1947,7 +1947,7 @@ var egret;
                 this.fixElementPos();
             };
             HTML5StageText.prototype.fixElementPos = function () {
-                var point = this.$textfield.localToGlobal(0, 0);
+                var point = this.$textfield.localToGlobal(egret.TextField.displayXOffset, egret.TextField.displayYOffset); //计算输入文本位置的时候也要应用上文本显示偏移值 by mangit
                 var x = point.x;
                 var y = point.y;
                 // let m = this.$textfield.$renderNode.renderMatrix;
@@ -8539,6 +8539,8 @@ var egret;
              * @private
              */
             WebGLRenderer.prototype.renderText = function (node, buffer) {
+                buffer.$offsetX += (isNaN(egret.TextField.displayXOffset) ? 0 : egret.TextField.displayXOffset); //应用文本显示偏移值X by mangit
+                buffer.$offsetY += (isNaN(egret.TextField.displayXOffset) ? 0 : egret.TextField.displayYOffset); //应用文本显示偏移值Y by mangit
                 if (web.textAtlasRenderEnable) {
                     //新的文字渲染机制
                     this.___renderText____(node, buffer);
