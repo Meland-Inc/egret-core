@@ -22226,6 +22226,10 @@ var egret;
          * 文本显示Y偏移值
          */
         TextField.displayYOffset = 0;
+        /**
+         * 文本偏移值基准因素,fontSize/displayOffsetFactorByFontSize得出最终factor
+         */
+        TextField.displayOffsetFactorByFontSize = 10;
         return TextField;
     }(egret.DisplayObject));
     egret.TextField = TextField;
