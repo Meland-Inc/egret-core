@@ -291,6 +291,10 @@ namespace egret {
          */
         public static displayYOffset: number = 0;
         /**
+         * 文本偏移值基准因素,fontSize/displayOffsetFactorByFontSize得出最终factor
+         */
+        public static displayOffsetFactorByFontSize: number = 10;
+        /**
          * ide模式，由于dom的input不支持富文本，所以需要特殊处理
          * 该模式下，隐藏input，显示egret的textfield，并监听各种事件
          */

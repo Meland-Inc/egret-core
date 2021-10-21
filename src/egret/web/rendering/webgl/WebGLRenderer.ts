@@ -972,8 +972,9 @@ namespace egret.web {
          * @private
          */
         private renderText(node: sys.TextNode, buffer: WebGLRenderBuffer): void {
-            buffer.$offsetX += (isNaN(TextField.displayXOffset) ? 0 : TextField.displayXOffset);//应用文本显示偏移值X by mangit
-            buffer.$offsetY += (isNaN(TextField.displayYOffset) ? 0 : TextField.displayYOffset);//应用文本显示偏移值Y by mangit
+            const factor = node.size / TextField.displayOffsetFactorByFontSize;
+            buffer.$offsetX += (isNaN(TextField.displayXOffset) ? 0 : TextField.displayXOffset * factor);//应用文本显示偏移值X by mangit
+            buffer.$offsetY += (isNaN(TextField.displayYOffset) ? 0 : TextField.displayYOffset * factor);//应用文本显示偏移值Y by mangit
             if (textAtlasRenderEnable) {
                 //新的文字渲染机制
                 this.___renderText____(node, buffer);

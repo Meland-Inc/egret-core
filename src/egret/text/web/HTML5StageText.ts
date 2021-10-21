@@ -108,7 +108,8 @@ namespace egret.web {
         }
 
         public fixElementPos(): void {
-            let point = this.$textfield.localToGlobal(TextField.displayXOffset, TextField.displayYOffset);//计算输入文本位置的时候也要应用上文本显示偏移值 by mangit
+            const factor = this.$textfield.size / TextField.displayOffsetFactorByFontSize;
+            let point = this.$textfield.localToGlobal(TextField.displayXOffset * factor, TextField.displayYOffset * factor);//计算输入文本位置的时候也要应用上文本显示偏移值 by mangit
             let x = point.x;
             let y = point.y;
             // let m = this.$textfield.$renderNode.renderMatrix;
