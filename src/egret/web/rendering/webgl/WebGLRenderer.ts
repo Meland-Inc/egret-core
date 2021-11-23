@@ -957,8 +957,9 @@ namespace egret.web {
             if (width <= 0 || height <= 0 || !width || !height || node.drawData.length == 0) {
                 return;
             }
-            let canvasScaleX = sys.DisplayList.$canvasScaleX;
-            let canvasScaleY = sys.DisplayList.$canvasScaleY;
+            // 文本显示模糊问题
+            let canvasScaleX = sys.DisplayList.$canvasScaleX * 2;
+            let canvasScaleY = sys.DisplayList.$canvasScaleY * 2;
             let maxTextureSize = buffer.context.$maxTextureSize;
             if (width * canvasScaleX > maxTextureSize) {
                 canvasScaleX *= maxTextureSize / (width * canvasScaleX);
@@ -996,9 +997,10 @@ namespace egret.web {
                 return;
             }
 
-            if (canvasScaleX != 1 || canvasScaleY != 1) {
-                this.canvasRenderBuffer.context.setTransform(canvasScaleX, 0, 0, canvasScaleY, 0, 0);
-            }
+            // 文本显示模糊，修改了canvasScaleX。 导致这里每次都进入 内存飙升
+            // if (canvasScaleX != 1 || canvasScaleY != 1) {
+            //     this.canvasRenderBuffer.context.setTransform(canvasScaleX, 0, 0, canvasScaleY, 0, 0);
+            // }
 
             if (x || y) {
                 if (node.dirtyRender) {
