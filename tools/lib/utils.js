@@ -273,9 +273,16 @@ function uglify(sourceFile) {
     }
 
     //确实是否需要混淆needConfuse
-    var envReg = /.trunkName = eTrunkName.([^,;]+)/;
-    var evnStr = envReg.exec(sourceCode);
-    let needConfuse = !!(!evnStr || evnStr[1] == "release");
+    let needConfuse = false;
+    try {
+        const versionInfoPath = path.join(egret.args.projectDir, `resource/versionInfo.json`);
+        if (file.existsSync(versionInfoPath)) {
+            const versionInfoObject = file.readJSONSync(versionInfoPath);
+            needConfuse = !!versionInfoObject.codeCompress;
+        }
+    } catch (error) {
+        needConfuse = false;
+    }
 
     //加闭包
     if (mainNamespace) {
@@ -292,7 +299,7 @@ function uglify(sourceFile) {
         //符号白名单
         //类名混淆时，各种配置表***Table，由于是资源读出的，需要保留
         //还有比如Main是引擎的引用等，需要手动添加进reserved
-        let symbolReserved = [mainNamespace, 'Main', "TestUtil", "getLogDownloadInfo", "getLogDownloadUrl", "GameConsole", "getGameVersion","init", "executiveFun", 'Bian', '__reflect', 'WebSocketWorker', 'wsWorker', 'Asset',
+        let symbolReserved = [mainNamespace, 'Main', "TestUtil", "getLogDownloadInfo", "getLogDownloadUrl", "GameConsole", "getGameVersion", "init", "executiveFun", 'Bian', '__reflect', 'WebSocketWorker', 'wsWorker', 'Asset',
             'AchievementTable', 'ArchFormulaTable', 'ArchFuelCntrTable', 'ArchFuelTable', 'ArchProductionTable', 'ArchPromptTable', 'ArchStateAcceptTable', 'ArchStateSendTable', 'ArchStorageTable', 'AvatarTable', 'BuffTable', 'ChatTable', 'ClassroomModeLessonTable', 'ClassroomModeTutorialTable', 'CodeblockLibTable', 'CodeblocksetTable', 'CodeblockTable', 'CodetipsTable', 'ConditionTable', 'CreatTypeTable', 'DescribeTable', 'DrawBoardColorTable', 'DropTable', 'EntityBuildObjectTable', 'EntityFunctionTable', 'EntityMaterialTable', 'EntitySoundTable', 'EntityTable', 'EntityVariaTable', 'EquipmentRandTable', 'EquipmentTable', 'GamePlatformTable', 'GameValueTable', 'HelpTable', 'HitBubbleTable', 'InitializationResurrectionTable', 'ItemArgumentTable', 'ItemEatableTable', 'ItemTable', 'LanguageTable', 'MailTemplateTable', 'MapCellTable', 'MapTable', 'MonsterAttributeTable', 'MonsterTable', 'NetworkConfigTable', 'NoviceManualTable', 'NoviceNodeTable', 'NoviceStepTable', 'NPCTable', 'NPCtalkTable', 'ObjectAnimationTable', 'ObjectInfoTable', 'ObjectStateTable', 'outputPaoMaDengTable', 'PlayerAreaBuyTable', 'QuotaTable', 'ResourcePointTable', 'ResSoundTable', 'RewardTable', 'RobotCodeblockTable', 'RobotLvTable', 'RobotSkinTable', 'RobotTable', 'RoleLvTable', 'RoleTable', 'SceneTable', 'SignInTable', 'SkillTable', 'TaskTable', 'WeakGuideTable', 'WeatherTable', 'WorksListCoverPatternTable', 'XinShouhelpTable',
         ];
 
