@@ -84,7 +84,7 @@ declare namespace RES {
          * 初始化构造函数
          * @language zh_CN
          */
-        new (): VersionController;
+        new(): VersionController;
     };
 }
 declare type ResourceRootSelector<T extends string> = () => T;
@@ -502,6 +502,12 @@ declare module RES {
      * @language zh_CN
      */
     function hasRes(key: string): boolean;
+    /**
+     * 不同于getResourceInfo获取file的 这个是获取config中的ResourceInfo结构
+     * @param key 
+     * @returns 
+     */
+    function getConfigResourceInfo(key: string): ResourceInfo | null;
     /**
      * The synchronization method for obtaining the cache has been loaded with the success of the resource.
      * <br>The type of resource and the corresponding return value types are as follows:

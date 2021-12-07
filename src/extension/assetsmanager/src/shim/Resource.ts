@@ -133,8 +133,8 @@ module RES {
     }
     /**
     * Set whether it is compatible mode
-    * When the value is true, the assetsManager will output the design of Res. When it is false, all the loaded resources will be returned as promises.
-    * The default is false, run in strict assetsManager mode
+    * When the value is true, the assetsManager will output the design of Res. When it is false, all the loaded resources will be returned as promises.
+    * The default is false, run in strict assetsManager mode
     * @version Egret 5.2.9
     * @platform Web,Native
     * @language en_US
@@ -316,6 +316,15 @@ module RES {
     }
 
     /**
+     * 不同于getResourceInfo获取file的 这个是获取config中的ResourceInfo结构
+     * @param key 
+     * @returns 
+     */
+    export function getConfigResourceInfo(key: string): ResourceInfo | null {
+        return config.getResource(key);
+    }
+
+    /**
      * The synchronization method for obtaining the cache has been loaded with the success of the resource.
      * <br>The type of resource and the corresponding return value types are as follows:
      * <br>RES.ResourceItem.TYPE_BIN : ArrayBuffer JavaScript primary object
@@ -357,6 +366,7 @@ module RES {
     export function getRes(key: string): any {
         return instance.getRes(key);
     }
+
     /**
      * Asynchronous mode to get the resources in the configuration. As long as the resources exist in the configuration file, you can get it in an asynchronous way.
      * @param key A sbuKeys attribute or name property in a configuration file.
@@ -457,7 +467,7 @@ module RES {
      * @language zh_CN
      */
     export function getResByUrl(url: string, compFunc?: Function, thisObject?: any, type: string = "", realUrl?: string): Promise<any> {
-        if(!instance){
+        if (!instance) {
             let message = egret.sys.tr(3200)
             egret.warn(message)
             return Promise.reject(message);
@@ -860,9 +870,9 @@ module RES {
             let data = this.getRes(key);
             if (data) {
                 if (compFunc) {
-                    egret.callLater(()=>{
+                    egret.callLater(() => {
                         compFunc.call(thisObject, data, paramKey);
-                    },this)
+                    }, this)
                 }
                 return Promise.resolve(data);
             }
@@ -945,7 +955,7 @@ module RES {
             const group = config.getGroupByName(name);
             if (group && group.length > 0) {
                 const index = config.config.loadGroup.indexOf(name);
-                if(index == -1) {
+                if (index == -1) {
                     return false;
                 }
                 if (force || (config.config.loadGroup.length == 1 && config.config.loadGroup[0] == name)) {
