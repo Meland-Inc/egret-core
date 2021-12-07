@@ -1332,6 +1332,15 @@ var RES;
     }
     RES.hasRes = hasRes;
     /**
+     * 不同于getResourceInfo获取file的 这个是获取config中的ResourceInfo结构
+     * @param key
+     * @returns
+     */
+    function getConfigResourceInfo(key) {
+        return RES.config.getResource(key);
+    }
+    RES.getConfigResourceInfo = getConfigResourceInfo;
+    /**
      * The synchronization method for obtaining the cache has been loaded with the success of the resource.
      * <br>The type of resource and the corresponding return value types are as follows:
      * <br>RES.ResourceItem.TYPE_BIN : ArrayBuffer JavaScript primary object
