@@ -255,6 +255,39 @@ function escape(s) {
     return s.replace(/"/, '\\\"');
 }
 
+/**获取符号白名单Mangle对象 */
+function getWhitelistMangle() {
+    //符号白名单
+    //类名混淆时，各种配置表***Table，由于是资源读出的，需要保留
+    //还有比如Main是引擎的引用等，需要手动添加进reserved
+    let symbolReserved = [mainNamespace, 'Main', "TestUtil", "getLogDownloadInfo", "getLogDownloadUrl", "GameConsole", "getGameVersion", "init", "executiveFun", 'Bian', '__reflect', 'WebSocketWorker', 'wsWorker', 'Asset',
+        'AchievementTable', 'ArchFormulaTable', 'ArchFuelCntrTable', 'ArchFuelTable', 'ArchProductionTable', 'ArchPromptTable', 'ArchStateAcceptTable', 'ArchStateSendTable', 'ArchStorageTable', 'AvatarTable', 'BuffTable', 'ChatTable', 'ClassroomModeLessonTable', 'ClassroomModeTutorialTable', 'CodeblockLibTable', 'CodeblocksetTable', 'CodeblockTable', 'CodetipsTable', 'ConditionTable', 'CreatTypeTable', 'DescribeTable', 'DrawBoardColorTable', 'DropTable', 'EntityBuildObjectTable', 'EntityFunctionTable', 'EntityMaterialTable', 'EntitySoundTable', 'EntityTable', 'EntityVariaTable', 'EquipmentRandTable', 'EquipmentTable', 'GamePlatformTable', 'GameValueTable', 'HelpTable', 'HitBubbleTable', 'InitializationResurrectionTable', 'ItemArgumentTable', 'ItemEatableTable', 'ItemTable', 'LanguageTable', 'MailTemplateTable', 'MapCellTable', 'MapTable', 'MonsterAttributeTable', 'MonsterTable', 'NetworkConfigTable', 'NoviceManualTable', 'NoviceNodeTable', 'NoviceStepTable', 'NPCTable', 'NPCtalkTable', 'ObjectAnimationTable', 'ObjectInfoTable', 'ObjectStateTable', 'outputPaoMaDengTable', 'PlayerAreaBuyTable', 'QuotaTable', 'ResourcePointTable', 'ResSoundTable', 'RewardTable', 'RobotCodeblockTable', 'RobotLvTable', 'RobotSkinTable', 'RobotTable', 'RoleLvTable', 'RoleTable', 'SceneTable', 'SignInTable', 'SkillTable', 'TaskTable', 'WeakGuideTable', 'WeatherTable', 'WorksListCoverPatternTable', 'XinShouhelpTable',
+    ];
+
+    //属性白名单
+    //hasOwnProperty使用字符串反射属性，不能混淆，***cell中最常见这个
+    let propertiesReserved = [
+        //tween等方法中对象属性传入给引擎使用的 对象名需要加入白名单
+        'onChange', 'onChangeObj', 'loop'
+    ];
+    let reflectReg = /.hasOwnProperty\("([^"]+)"\)/g;
+    var r = null;
+    while (r = reflectReg.exec(sourceCode)) {
+        propertiesReserved.push(r[1]);
+    }
+
+    let mangle = {
+        properties: {
+            reserved: propertiesReserved,
+            keep_quoted: true,
+        },
+
+        reserved: symbolReserved
+    }
+
+    return mangle;
+}
+
 //对main.js进行混淆
 //属性名混淆的定制处理，在propmangle里
 function uglify(sourceFile) {
@@ -271,66 +304,39 @@ function uglify(sourceFile) {
             sourceCode += sourceFile[a];
         }
     }
-
-    //确实是否需要混淆needConfuse
-    let needConfuse = false;
-    try {
-        const versionInfoPath = path.join(egret.args.projectDir, `resource/versionInfo.json`);
-        if (file.existsSync(versionInfoPath)) {
-            const versionInfoObject = file.readJSONSync(versionInfoPath);
-            needConfuse = !!versionInfoObject.codeCompress;
-        }
-    } catch (error) {
-        needConfuse = false;
-    }
-
     //加闭包
     if (mainNamespace) {
         sourceCode = closure(sourceCode, mainNamespace);
     }
 
-    if (!needConfuse) {
+    //是否需要代码压缩
+    let needCompress = false;
+    try {
+        const versionInfoPath = path.join(egret.args.projectDir, `resource/versionInfo.json`);
+        if (file.existsSync(versionInfoPath)) {
+            const versionInfoObject = file.readJSONSync(versionInfoPath);
+            needCompress = !!versionInfoObject.codeCompress;
+        }
+    } catch (error) {
+        needCompress = false;
+    }
+
+    //原版代码 不用压缩
+    if (!needCompress) {
         return sourceCode;
     }
 
-    //白名单
-    let mangle = {};
-    if (mainNamespace || needConfuse) {//只要走闭包或者混淆就需要有白名单
-        //符号白名单
-        //类名混淆时，各种配置表***Table，由于是资源读出的，需要保留
-        //还有比如Main是引擎的引用等，需要手动添加进reserved
-        let symbolReserved = [mainNamespace, 'Main', "TestUtil", "getLogDownloadInfo", "getLogDownloadUrl", "GameConsole", "getGameVersion", "init", "executiveFun", 'Bian', '__reflect', 'WebSocketWorker', 'wsWorker', 'Asset',
-            'AchievementTable', 'ArchFormulaTable', 'ArchFuelCntrTable', 'ArchFuelTable', 'ArchProductionTable', 'ArchPromptTable', 'ArchStateAcceptTable', 'ArchStateSendTable', 'ArchStorageTable', 'AvatarTable', 'BuffTable', 'ChatTable', 'ClassroomModeLessonTable', 'ClassroomModeTutorialTable', 'CodeblockLibTable', 'CodeblocksetTable', 'CodeblockTable', 'CodetipsTable', 'ConditionTable', 'CreatTypeTable', 'DescribeTable', 'DrawBoardColorTable', 'DropTable', 'EntityBuildObjectTable', 'EntityFunctionTable', 'EntityMaterialTable', 'EntitySoundTable', 'EntityTable', 'EntityVariaTable', 'EquipmentRandTable', 'EquipmentTable', 'GamePlatformTable', 'GameValueTable', 'HelpTable', 'HitBubbleTable', 'InitializationResurrectionTable', 'ItemArgumentTable', 'ItemEatableTable', 'ItemTable', 'LanguageTable', 'MailTemplateTable', 'MapCellTable', 'MapTable', 'MonsterAttributeTable', 'MonsterTable', 'NetworkConfigTable', 'NoviceManualTable', 'NoviceNodeTable', 'NoviceStepTable', 'NPCTable', 'NPCtalkTable', 'ObjectAnimationTable', 'ObjectInfoTable', 'ObjectStateTable', 'outputPaoMaDengTable', 'PlayerAreaBuyTable', 'QuotaTable', 'ResourcePointTable', 'ResSoundTable', 'RewardTable', 'RobotCodeblockTable', 'RobotLvTable', 'RobotSkinTable', 'RobotTable', 'RoleLvTable', 'RoleTable', 'SceneTable', 'SignInTable', 'SkillTable', 'TaskTable', 'WeakGuideTable', 'WeatherTable', 'WorksListCoverPatternTable', 'XinShouhelpTable',
-        ];
+    //是否需要混淆代码 目前不需要 后期本来就要开源 这里只压缩代码 加快加载速度
+    let needConfuse = false;
 
-        //属性白名单
-        //hasOwnProperty使用字符串反射属性，不能混淆，***cell中最常见这个
-        let propertiesReserved = [
-            //tween等方法中对象属性传入给引擎使用的 对象名需要加入白名单
-            'onChange', 'onChangeObj', 'loop'
-        ];
-        let reflectReg = /.hasOwnProperty\("([^"]+)"\)/g;
-        var r = null;
-        while (r = reflectReg.exec(sourceCode)) {
-            propertiesReserved.push(r[1]);
-        }
-
-        mangle = {
-            properties: {
-                reserved: propertiesReserved,
-                keep_quoted: true,
-            },
-
-            reserved: symbolReserved
-        }
+    let options = {};
+    if (needConfuse)//需要混淆
+    {
+        const mangle = getWhitelistMangle();
 
         const pbUnMangleContent = file.read(`${egret.args.projectDir}src/protocol/noMangle.txt`);
         UglifyJS2.filterNoMangleProp(pbUnMangleContent && pbUnMangleContent.split(','));
-    }
 
-    let options = {};
-    //需要混淆
-    if (needConfuse) {
         options = {
             mangle: mangle,
             sourceMap: {
@@ -343,9 +349,9 @@ function uglify(sourceFile) {
             warnings: true,
         };
     }
-    else {//不混淆
+    else//只是压缩代码
+    {
         options = {
-            mangle: mangle,
             compress: {
                 global_defs: {
                     DEBUG: false,
