@@ -371,35 +371,66 @@ function uglify(sourceFile) {
     // __reflect(s3.prototype, "DebugPlatform", ["Platform"]),
     // __reflect(h3.prototype, "PlayerIdleStatus", ["IPlayerAnimUpdateStatus"]);
     var result = UglifyJS2.minify(sourceCode, options);
-    var code = result.code;
 
-    //unlify混淆类名后，__reflect保留了原有的className，反射时会有问题，需要一起替换，这里可能存在遗漏
-    var filterRe = /__reflect\(([^",]+).prototype,"([^"]+)"\)/g;
-    while (r = filterRe.exec(code)) {
-        if (r[1].length < 10 && r[2].length < 50) {
-            code = code.replace(r[0], `__reflect\(${r[1]}.prototype,"${r[1]}")${' '.repeat(r[2].length - r[1].length)}`)
-            result.mangleMap[r[2]] = r[1];//混淆后这里又改了一次,就根据改的来
-        }
-    }
+    symbolProcessOfMinify(result, mainNamespace);
 
-    //将上面闭包添加的结构也需要同名混淆 工具没有混淆 需要手动 并且替换成混淆短单词后需要补全空格 否则sourceMap会失效
-    //eg: bellPlanet.GuiWindow= D,
-    if (mainNamespace) {
-        let namespaceRe = /bellPlanet\.([\$\w]*)\s*=\s*([\$\w]*),/g;
-        while (r = namespaceRe.exec(code)) {
-            let newWord = r[0].replace('.' + r[1], '.' + r[2]);//前面要加上点 否则bellPlanet里面的单词可能会被替换成r[2]单词
-            let spaceCount = r[1].length - r[2].length;
-            if (spaceCount > 0) {
-                newWord += ' '.repeat(spaceCount);
-            }
-
-            code = code.replace(r[0], newWord);
-        }
-    }
     file.save(`${egret.args.releaseDir}/mangleMap.json`, JSON.stringify(result.mangleMap));
     file.save("main.js.map", result.map);
-    return code;
+    return result.code;
 }
+
+/** 工具默认minify后的一些符号处理 */
+function symbolProcessOfMinify(result, mainNamespace) {
+    let code = result.code;
+
+    //白鹭反射
+    //unlify混淆类名后，__reflect保留了原有的className，反射时会有问题，需要一起替换，这里可能存在遗漏
+    //p(jkt.prototype, "MeLandPlatformModule"), 
+    //__reflect(jkt.prototype, "MeLandPlatformModule"),
+    const reflectReg = /\((\w*)\.prototype, ?"(\w*)"\)/g;
+    let reflectRes = reflectReg.exec(code);
+    while (reflectRes) {
+        result.mangleMap[reflectRes[2]] = reflectRes[1];//混淆后这里又改了一次,就根据改的来
+        reflectRes = reflectReg.exec(code);
+    }
+    code = replaceSymbol(code, reflectReg, 2, 1);
+
+    //全局闭包处理
+    //bellPlanet.MeLandPlatformModule = jkt,
+    if (mainNamespace) {
+        const mainNamespaceReg = new RegExp(`\\b${mainNamespace}\\.(\\w*) ?= ?(\\w*)[,;]`, 'g');
+        code = replaceSymbol(code, mainNamespaceReg, 1, 2);
+    }
+
+    //全局脚本处理
+    //window.MeLandPlatformModule = jkt,
+    const windowReg = /\bwindow\.(\w*) ?= ?(\w*)[,;]/g;
+    code = replaceSymbol(code, windowReg, 1, 2);
+
+    result.code = code;
+}
+
+/**
+ * 替换符号
+ * @param content 源代码
+ * @param reg 正则
+ * @param oldIndex 被替换的符号索引
+ * @param newIndex 替换的符号索引
+ */
+function replaceSymbol(content, reg, oldIndex, newIndex) {
+    let res = reg.exec(content);
+    while (res) {
+        let newWord = res[0].replace(res[oldIndex], res[newIndex]);
+        //替换成混淆短单词后需要补全空格 否则sourceMap会失效
+        if (res[oldIndex].length > res[newIndex].length) {
+            newWord += ' '.repeat(res[oldIndex].length - res[newIndex].length);
+        }
+        content = content.replace(res[0], newWord);
+        res = reg.exec(content);
+    }
+    return content;
+}
+
 exports.uglify = uglify;
 /**
  * 处理主工程的闭包 防止全局变量污染问题 返回处理好的新文本
