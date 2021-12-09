@@ -387,7 +387,8 @@ function symbolProcessOfMinify(result, mainNamespace) {
     //unlify混淆类名后，__reflect保留了原有的className，反射时会有问题，需要一起替换，这里可能存在遗漏
     //p(jkt.prototype, "MeLandPlatformModule"), 
     //__reflect(jkt.prototype, "MeLandPlatformModule"),
-    const reflectReg = /\((\w*)\.prototype, ?"(\w*)"\)/g;
+    //p(h5.prototype, "ComFallingObjectName", ["IPoolInstance"]);
+    const reflectReg = /\((\w*)\.prototype, ?"(\w*)"(?=\)|, ?\[")/g;
     let reflectRes = reflectReg.exec(code);
     while (reflectRes) {
         result.mangleMap[reflectRes[2]] = reflectRes[1];//混淆后这里又改了一次,就根据改的来
