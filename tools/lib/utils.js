@@ -421,7 +421,7 @@ function symbolProcessOfMinify(result, mainNamespace) {
 function replaceSymbol(content, reg, oldIndex, newIndex) {
     let res = reg.exec(content);
     while (res) {
-        let newWord = res[0].replace(res[oldIndex], res[newIndex]);
+        let newWord = res[0].replace(new RegExp(`\\b${res[oldIndex]}\\b`), res[newIndex]);
         //替换成混淆短单词后需要补全空格 否则sourceMap会失效
         if (res[oldIndex].length > res[newIndex].length) {
             newWord += ' '.repeat(res[oldIndex].length - res[newIndex].length);
