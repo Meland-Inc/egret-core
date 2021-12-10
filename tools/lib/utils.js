@@ -255,15 +255,19 @@ function escape(s) {
     return s.replace(/"/, '\\\"');
 }
 
-/**获取符号白名单Mangle对象 */
-function getWhitelistMangle() {
-    //符号白名单
+/**获取类名等符号白名单 不包括属性白名单 */
+function getSymbolWhiteList(mainNamespace) {
     //类名混淆时，各种配置表***Table，由于是资源读出的，需要保留
     //还有比如Main是引擎的引用等，需要手动添加进reserved
     let symbolReserved = [mainNamespace, 'Main', "TestUtil", "getLogDownloadInfo", "getLogDownloadUrl", "GameConsole", "getGameVersion", "init", "executiveFun", 'Bian', '__reflect', 'WebSocketWorker', 'wsWorker', 'Asset',
         'AchievementTable', 'ArchFormulaTable', 'ArchFuelCntrTable', 'ArchFuelTable', 'ArchProductionTable', 'ArchPromptTable', 'ArchStateAcceptTable', 'ArchStateSendTable', 'ArchStorageTable', 'AvatarTable', 'BuffTable', 'ChatTable', 'ClassroomModeLessonTable', 'ClassroomModeTutorialTable', 'CodeblockLibTable', 'CodeblocksetTable', 'CodeblockTable', 'CodetipsTable', 'ConditionTable', 'CreatTypeTable', 'DescribeTable', 'DrawBoardColorTable', 'DropTable', 'EntityBuildObjectTable', 'EntityFunctionTable', 'EntityMaterialTable', 'EntitySoundTable', 'EntityTable', 'EntityVariaTable', 'EquipmentRandTable', 'EquipmentTable', 'GamePlatformTable', 'GameValueTable', 'HelpTable', 'HitBubbleTable', 'InitializationResurrectionTable', 'ItemArgumentTable', 'ItemEatableTable', 'ItemTable', 'LanguageTable', 'MailTemplateTable', 'MapCellTable', 'MapTable', 'MonsterAttributeTable', 'MonsterTable', 'NetworkConfigTable', 'NoviceManualTable', 'NoviceNodeTable', 'NoviceStepTable', 'NPCTable', 'NPCtalkTable', 'ObjectAnimationTable', 'ObjectInfoTable', 'ObjectStateTable', 'outputPaoMaDengTable', 'PlayerAreaBuyTable', 'QuotaTable', 'ResourcePointTable', 'ResSoundTable', 'RewardTable', 'RobotCodeblockTable', 'RobotLvTable', 'RobotSkinTable', 'RobotTable', 'RoleLvTable', 'RoleTable', 'SceneTable', 'SignInTable', 'SkillTable', 'TaskTable', 'WeakGuideTable', 'WeatherTable', 'WorksListCoverPatternTable', 'XinShouhelpTable',
     ];
 
+    return symbolReserved;
+}
+
+/**获取属性白名单 */
+function getPropertyWhiteList(sourceCode) {
     //属性白名单
     //hasOwnProperty使用字符串反射属性，不能混淆，***cell中最常见这个
     let propertiesReserved = [
@@ -276,16 +280,7 @@ function getWhitelistMangle() {
         propertiesReserved.push(r[1]);
     }
 
-    let mangle = {
-        properties: {
-            reserved: propertiesReserved,
-            keep_quoted: true,
-        },
-
-        reserved: symbolReserved
-    }
-
-    return mangle;
+    return propertiesReserved;
 }
 
 //对main.js进行混淆
@@ -329,38 +324,43 @@ function uglify(sourceFile) {
     //是否需要混淆代码 目前不需要 后期本来就要开源 这里只压缩代码 加快加载速度
     let needConfuse = false;
 
-    let options = {};
+    let options = {
+        sourceMap: {
+            filename: "main.js",
+            url: "main.js.map",
+            includeSources: true,
+        },
+        toplevel: true,
+        ie8: true,
+        warnings: true,
+    };
+
     if (needConfuse)//需要混淆
     {
-        const mangle = getWhitelistMangle();
-
         const pbUnMangleContent = file.read(`${egret.args.projectDir}src/protocol/noMangle.txt`);
         UglifyJS2.filterNoMangleProp(pbUnMangleContent && pbUnMangleContent.split(','));
 
-        options = {
-            mangle: mangle,
-            sourceMap: {
-                filename: "main.js",
-                url: "main.js.map",
-                includeSources: true,
+        options.mangle =
+        {
+            properties: {
+                reserved: getPropertyWhiteList(sourceCode),
+                keep_quoted: true,
             },
-            toplevel: true,
-            ie8: true,
-            warnings: true,
+
+            reserved: getSymbolWhiteList(mainNamespace)
         };
     }
     else//只是压缩代码
     {
-        options = {
-            compress: {
-                global_defs: {
-                    DEBUG: false,
-                    RELEASE: true
-                }
-            },
-            output: {
-                beautify: false
-            }
+        if (mainNamespace) {
+            options.mangle =
+            {
+                properties: false,
+                reserved: getSymbolWhiteList(mainNamespace)//闭包后 类名等符号变成了局部变量 会自动也会混淆 需要白名单
+            };
+        }
+        else {
+            options.mangle = false;
         }
     }
 
