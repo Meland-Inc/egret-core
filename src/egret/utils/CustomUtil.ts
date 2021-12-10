@@ -1,4 +1,9 @@
 namespace egret {
+    /**
+     * 指定的反射global 用来反射使用的 由于runtime修改了window的设置属性权限 加入闭包后游戏测无法通过window指定global
+     */
+    export let reflectGlobal;
+
     /**当前webgl的纹理数量 */
     export let webglTextureNum: number = 0;
 
@@ -21,4 +26,4 @@ namespace egret {
     export function refreshRenderSize(): void {
         lifecycle.stage.$screen.updateScreenSize();
     }
-}
+}

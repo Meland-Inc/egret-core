@@ -14314,6 +14314,10 @@ declare namespace egret {
     }
 }
 declare namespace egret {
+    /**
+     * 指定的反射global 用来反射使用的 由于runtime修改了window的设置属性权限 加入闭包后游戏测无法通过window指定global
+     */
+    let reflectGlobal: any;
     /**当前webgl的纹理数量 */
     let webglTextureNum: number;
     /**性能档位 */

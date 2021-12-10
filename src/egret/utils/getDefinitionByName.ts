@@ -60,7 +60,7 @@ namespace egret {
         }
         let paths = name.split(".");
         let length = paths.length;
-        definition = global;
+        definition = reflectGlobal || global;
         for (let i = 0; i < length; i++) {
             let path = paths[i];
             definition = definition[path];
