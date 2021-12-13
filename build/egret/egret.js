@@ -25599,7 +25599,7 @@ var egret;
         }
         var paths = name.split(".");
         var length = paths.length;
-        definition = global;
+        definition = egret.reflectGlobal || global;
         for (var i = 0; i < length; i++) {
             var path = paths[i];
             definition = definition[path];
