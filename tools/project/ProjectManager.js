@@ -29,6 +29,7 @@ var manager;
             game.push("main.min.js");
         }
         var manifest = { initial: initial, game: game };
+        console.log(manifest, 'manifest');
         if (manifestPath) {
             FileUtil.save(manifestPath, JSON.stringify(manifest, undefined, "\t"));
         }

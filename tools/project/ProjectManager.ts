@@ -31,6 +31,9 @@ export namespace manager {
         }
 
         let manifest = { initial, game };
+
+        console.log(manifest, 'manifest file');
+
         if (manifestPath) {
             FileUtil.save(manifestPath, JSON.stringify(manifest, undefined, "\t"));
         }
