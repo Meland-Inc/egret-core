@@ -15,6 +15,7 @@ var manager;
     function generateManifest(gameFileList, options, manifestPath) {
         var initial = [];
         var game = [];
+        console.log("manifest gen");
         ProjectData_1.projectData.getModulesConfig(options.platform).forEach(function (m) {
             m.target.forEach(function (m) {
                 initial.push(options.debug ? m.debug : m.release);

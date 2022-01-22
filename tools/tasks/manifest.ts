@@ -82,10 +82,11 @@ export class ManifestPlugin {
             }
             const relative = file.relative.split("\\").join('/');
 
-            if (file.origin.indexOf('libs/') >= 0) {
+            if (file.origin.indexOf('libs/') >= 0
+                || file.origin.indexOf('node_modules/') >= 0
+            ) {
                 manifest.initial.push(relative);
-            }
-            else {
+            } else {
                 manifest.game.push(relative);
             }
             if (verbose) {

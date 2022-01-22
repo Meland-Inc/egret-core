@@ -97,7 +97,10 @@ var ManifestPlugin = /** @class */ (function () {
                         file.path = path.join(file.base, '../', 'engine', new_file_path);
                     }
                     relative = file.relative.split("\\").join('/');
-                    if (file.origin.indexOf('libs/') >= 0) {
+                    console.debug(file);
+                    if (file.origin.indexOf('libs/') >= 0
+                        || file.origin.indexOf('node_modules/') >= 0
+                    ) {
                         manifest.initial.push(relative);
                     }
                     else {

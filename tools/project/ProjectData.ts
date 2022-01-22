@@ -161,7 +161,9 @@ class EgretProjectData {
             return _path.join(egret.root, 'build', m.name);
         }
         let egretLibs;
-        if (process.platform === 'linux') {
+        if (process.platform === 'linux'
+            || process.platform === 'darwin'
+        ) {
             egretLibs = _path.resolve(__dirname, '../../');
         } else {
             egretLibs = getAppDataEnginesRootPath();
@@ -319,7 +321,9 @@ class EgretLauncherProxy {
     private proxy: LauncherAPI;
 
     getEgretToolsInstalledByVersion(checkVersion: string) {
-        if (process.platform === 'linux') {
+        if (process.platform === 'linux'
+            || process.platform === 'darwin'
+        ) {
             return _path.resolve(__dirname, '../../');
         }
         const egretjs = this.getLauncherLibrary();

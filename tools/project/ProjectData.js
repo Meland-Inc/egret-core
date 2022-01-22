@@ -116,7 +116,9 @@ var EgretProjectData = /** @class */ (function () {
             return _path.join(egret.root, 'build', m.name);
         }
         var egretLibs;
-        if (process.platform === 'linux') {
+        if (process.platform === 'linux'
+            || process.platform === 'darwin'
+        ) {
             egretLibs = _path.resolve(__dirname, '../../');
         }
         else {
@@ -249,7 +251,9 @@ var EgretLauncherProxy = /** @class */ (function () {
         };
     };
     EgretLauncherProxy.prototype.getEgretToolsInstalledByVersion = function (checkVersion) {
-        if (process.platform === 'linux') {
+        if (process.platform === 'linux'
+            || process.platform === 'darwin'
+        ) {
             return _path.resolve(__dirname, '../../');
         }
         var egretjs = this.getLauncherLibrary();
