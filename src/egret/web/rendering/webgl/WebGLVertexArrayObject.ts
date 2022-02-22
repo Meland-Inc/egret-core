@@ -218,7 +218,7 @@ namespace egret.web {
             }
 
             if (meshVertices) {
-                if (isIOS14Device()) {
+                if (meshNotUseVertexBuff()) {
                     let vertData = [];
                     // 计算索引位置与赋值
                     const vertices = this.vertices;
@@ -443,10 +443,9 @@ namespace egret.web {
 
     }
 
-    export function isIOS14Device() {
+    /**mesh不使用顶点buff共享 在mac上发现使用了反正GPU帧数急剧下降*/
+    export function meshNotUseVertexBuff() {
         return egret.Capabilities.runtimeType == egret.RuntimeType.WEB
-            && egret.Capabilities.os == "iOS"
-            && egret.Capabilities.isMobile
-            && /iPhone OS 14/.test(window.navigator.userAgent);
+            && (egret.Capabilities.os == "iOS" || egret.Capabilities.os == "Mac OS");
     }
 }
